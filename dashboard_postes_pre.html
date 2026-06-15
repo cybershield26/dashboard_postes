@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Centro de Control · Avance de Postes</title>
+
+<!-- Tailwind CSS (CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          base:    '#0A0F1E',
+          surface: '#121A2E',
+          surface2:'#1B2740',
+          line:    '#283452',
+          ink:     '#E8EDF7',
+          muted:   '#8B9AC2',
+          cyan:    '#38BDF8',
+          indigo:  '#818CF8',
+          mint:    '#34D399',
+          amber:   '#FBBF24',
+          rose:    '#F87171',
+          orange:  '#FB923C'
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body:    ['"Inter"', 'sans-serif'],
+          mono:    ['"JetBrains Mono"', 'monospace']
+        }
+      }
+    }
+  }
+</script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<!-- SheetJS (lectura de Excel / CSV) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background-color:#0A0F1E; }
+  .font-display { font-family: 'Space Grotesk', sans-serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* scanning gradient line under header */
+  .scanline {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #38BDF8, #818CF8, transparent);
+    background-size: 200% 100%;
+    animation: scan 6s linear infinite;
+  }
+  @keyframes scan { 0% { background-position: 0% 0; } 100% { background-position: -200% 0; } }
+
+  /* subtle card hover */
+  .kpi-card { transition: border-color .2s ease, transform .2s ease; }
+  .kpi-card:hover { border-color: #38BDF8; transform: translateY(-2px); }
+
+  .chart-card { transition: border-color .2s ease; }
+  .chart-card:hover { border-color: #3A4A72; }
+
+  /* progress bar */
+  .pbar-track { background: #1B2740; border-radius: 999px; overflow: hidden; height: 6px; }
+  .pbar-fill { height: 100%; border-radius: 999px; }
+
+  /* table */
+  .data-table th { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8B9AC2; }
+  .data-table td { vertical-align: top; }
+  .row-analitico { box-shadow: inset 3px 0 0 0 #FBBF24; background-color: rgba(251,191,36,0.06); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-track { background: #121A2E; }
+  ::-webkit-scrollbar-thumb { background: #283452; border-radius: 4px; }
+
+  /* drop zone */
+  .dropzone { border: 2px dashed #283452; transition: border-color .2s, background-color .2s; }
+  .dropzone.dragover { border-color: #38BDF8; background-color: rgba(56,189,248,0.06); }
+
+  .badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+
+  .pulse-dot { width:8px; height:8px; border-radius:50%; background:#34D399; box-shadow: 0 0 0 0 rgba(52,211,153,.6); animation: pulse 2s infinite; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(52,211,153,.6); }
+    70% { box-shadow: 0 0 0 8px rgba(52,211,153,0); }
+    100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+  }
+
+  .chart-wrap { position: relative; height: 280px; }
+  .chart-wrap-sm { position: relative; height: 240px; }
+</style>
+</head>
+<body class="bg-base text-ink font-body">
+
+<!-- ====================== HEADER ====================== -->
+<header class="sticky top-0 z-30 bg-base/95 backdrop-blur border-b border-line">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="pulse-dot"></span>
+        <h1 class="font-display text-xl sm:text-2xl font-700 tracking-tight">Centro de Control de Postes</h1>
+      </div>
+      <p id="subtitle" class="text-muted text-sm mt-1 font-mono">Esperando carga de archivo Excel / CSV…</p>
+    </div>
+
+    <!-- Loader -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
+      <label for="fileInput"
+        class="cursor-pointer inline-flex items-center justify-center gap-2 bg-cyan text-base font-display font-600 text-sm px-4 py-2.5 rounded-lg hover:bg-cyan/90 active:scale-[.98] transition whitespace-nowrap">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Cargar / Actualizar Excel
+      </label>
+      <input id="fileInput" type="file" accept=".xlsx,.xls,.csv" class="hidden">
+      <div id="fileStatus" class="text-xs font-mono text-muted px-3 py-2 rounded-lg bg-surface border border-line min-w-[220px] flex items-center">
+        Ningún archivo cargado todavía.
+      </div>
+    </div>
+  </div>
+  <div class="scanline"></div>
+</header>
+
+<!-- ====================== MAIN ====================== -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+
+  <!-- ---------- EMPTY STATE ---------- -->
+  <section id="emptyState" class="mt-6">
+    <div id="dropzone" class="dropzone rounded-2xl p-10 sm:p-16 text-center">
+      <div class="max-w-md mx-auto">
+        <div class="mx-auto w-14 h-14 rounded-xl bg-surface2 border border-line flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9.5 13.5l1.5 1.5 3.5-3.5"/></svg>
+        </div>
+        <h2 class="font-display text-lg font-700 mb-2">Sube el archivo del programa de proyecto</h2>
+        <p class="text-muted text-sm mb-6">
+          Arrastra aquí tu archivo <span class="font-mono text-ink">.xlsx</span>, <span class="font-mono text-ink">.xls</span> o <span class="font-mono text-ink">.csv</span> con las columnas
+          <span class="font-mono text-cyan"> POSTE</span>, <span class="font-mono text-cyan">COORDENADAS</span>, <span class="font-mono text-cyan">OBSERVACIONES</span>, <span class="font-mono text-cyan">PROGRESO</span> y
+          <span class="font-mono text-amber">ANALITICOS</span>, o usa el botón "Cargar / Actualizar Excel".
+        </p>
+        <label for="fileInput" class="cursor-pointer inline-flex items-center gap-2 bg-cyan text-base font-display font-600 text-sm px-5 py-3 rounded-lg hover:bg-cyan/90 transition">
+          Seleccionar archivo
+        </label>
+        <p id="errorMsg" class="text-rose text-sm mt-4 font-mono hidden"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- DASHBOARD ---------- -->
+  <section id="dashboard" class="hidden">
+
+    <!-- KPI CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+
+      <!-- Card 1: Postes -->
+      <div class="kpi-card bg-surface border border-line rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-muted text-xs font-mono uppercase tracking-widest">Postes registrados</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M5 8h14M5 16h14"/></svg>
+        </div>
+        <div class="font-display text-3xl sm:text-4xl font-700" id="kpiTotalPostes">—</div>
+        <div class="mt-3 flex items-center gap-2 flex-wrap">
+          <span class="badge bg-amber/15 text-amber border border-amber/30" id="kpiAnaliticos">— con analíticos</span>
+          <span class="badge bg-surface2 text-muted border border-line" id="kpiSinAnaliticos">— sin analíticos</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Direcciones / coordenadas -->
+      <div class="kpi-card bg-surface border border-line rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-muted text-xs font-mono uppercase tracking-widest">Direcciones y coordenadas</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="font-display text-3xl sm:text-4xl font-700" id="kpiCoords">—</div>
+        <div class="mt-3 text-xs text-muted font-mono leading-snug" id="kpiSampleAddress">Sin datos de dirección aún.</div>
+      </div>
+
+      <!-- Card 3: Avance del proyecto -->
+      <div class="kpi-card bg-surface border border-line rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-muted text-xs font-mono uppercase tracking-widest">Avance del proyecto</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-mint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="font-display text-3xl sm:text-4xl font-700" id="kpiAvance">—</div>
+        <div class="pbar-track mt-3">
+          <div class="pbar-fill bg-mint" id="kpiAvanceBar" style="width:0%"></div>
+        </div>
+        <div class="mt-2 text-xs text-muted font-mono" id="kpiProjectName">&nbsp;</div>
+      </div>
+    </div>
+
+    <!-- CHARTS GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+
+      <!-- Bar: Observaciones (span 2) -->
+      <div class="chart-card bg-surface border border-line rounded-2xl p-5 lg:col-span-2">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-display text-sm font-600">Distribución de observaciones</h3>
+          <span class="text-[10px] font-mono text-muted uppercase tracking-widest">por categoría</span>
+        </div>
+        <div class="chart-wrap"><canvas id="chartObservaciones"></canvas></div>
+      </div>
+
+      <!-- Donut: Avance del proyecto -->
+      <div class="chart-card bg-surface border border-line rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-display text-sm font-600">Avance del proyecto</h3>
+          <span class="text-[10px] font-mono text-muted uppercase tracking-widest">por poste</span>
+        </div>
+        <div class="chart-wrap-sm"><canvas id="chartAvance"></canvas></div>
+      </div>
+
+      <!-- Donut: Cobertura de analíticos -->
+      <div class="chart-card bg-surface border border-line rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-display text-sm font-600">Cobertura de analíticos</h3>
+          <span class="text-[10px] font-mono text-muted uppercase tracking-widest">lectora de placas, etc.</span>
+        </div>
+        <div class="chart-wrap-sm"><canvas id="chartAnaliticos"></canvas></div>
+      </div>
+
+      <!-- Bar horizontal: Postes con menor avance -->
+      <div class="chart-card bg-surface border border-line rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-display text-sm font-600">Postes con menor avance</h3>
+          <span class="text-[10px] font-mono text-muted uppercase tracking-widest">top 10 pendientes</span>
+        </div>
+        <div class="chart-wrap-sm"><canvas id="chartPendientes"></canvas></div>
+      </div>
+
+      <!-- Scatter: Distribución geográfica -->
+      <div class="chart-card bg-surface border border-line rounded-2xl p-5 lg:col-span-1">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-display text-sm font-600">Distribución geográfica</h3>
+          <span class="text-[10px] font-mono text-muted uppercase tracking-widest">lat / lon</span>
+        </div>
+        <div class="chart-wrap-sm"><canvas id="chartMapa"></canvas></div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="bg-surface border border-line rounded-2xl p-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <h3 class="font-display text-sm font-600">Detalle de postes</h3>
+        <div class="flex items-center gap-2">
+          <span class="badge bg-amber/15 text-amber border border-amber/30">con analíticos</span>
+          <input id="tableSearch" type="text" placeholder="Buscar poste, dirección u observación…"
+            class="bg-surface2 border border-line rounded-lg px-3 py-2 text-sm font-mono text-ink placeholder:text-muted focus:outline-none focus:border-cyan w-full sm:w-72">
+        </div>
+      </div>
+      <div class="overflow-x-auto rounded-xl border border-line">
+        <table class="w-full text-sm data-table">
+          <thead class="bg-surface2">
+            <tr>
+              <th class="px-3 py-2 text-left">No.</th>
+              <th class="px-3 py-2 text-left">Poste</th>
+              <th class="px-3 py-2 text-left">Dirección</th>
+              <th class="px-3 py-2 text-left">Coordenadas</th>
+              <th class="px-3 py-2 text-left">Progreso</th>
+              <th class="px-3 py-2 text-left">Observaciones</th>
+              <th class="px-3 py-2 text-left">Analíticos</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-line/60"></tbody>
+        </table>
+      </div>
+      <p class="text-xs text-muted font-mono mt-3" id="tableCount">0 registros</p>
+    </div>
+
+  </section>
+</main>
+
+<footer class="max-w-7xl mx-auto px-4 sm:px-6 py-6 text-center text-muted text-xs font-mono">
+  Dashboard autocontenido · Lectura local de Excel/CSV vía SheetJS · Recarga el archivo cuantas veces sea necesario para actualizar los datos.
+</footer>
+
+<script>
+/* =========================================================================
+   DATOS PRECARGADOS
+   Generados a partir del Excel original (Programa_de_Proyecto.xlsx).
+   Si se carga un nuevo archivo desde la interfaz, estos datos se sustituyen.
+   ========================================================================= */
+const EMBEDDED_SHEETS = {"Hoja1": [[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["Alcaldia Magdalena Contreras C2", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.8333333333333324], [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["No", "TAREA", "COORDENADAS", null, "PROGRESO", "POSTE", null, null, "OBSERVACIONES", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "ANALITICOS", "Avance del Proyecto"], [1, "Aztecas 46, San Bernabé Ocotepec, Lomas de San Bernabé, La Magdalena Contreras, 10350 Ciudad de México, CDMX", "N 19° 19.026', W 099° 15.728'", null, 0.7500000000000001, "0032", null, null, "Reconfiguracion de ptz ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [2, "Progreso 21, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.3002518, -99.241366", null, 0.7500000000000001, "0016", null, null, "Faltan etiquetas ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [3, "Luis Echeverría Álvarez MZ37LT14, La Malinche, La Magdalena Contreras, 10320 Ciudad de México, CDMX", "19.3249086, -99.2468062", null, 0.5, "0045", null, null, "camaras balas dañadas ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [4, "C. Oyametla 18, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.3210375, -99.25888649999999", null, 0.7500000000000001, "0038", null, null, "Faltan etiquetas y chapas", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [5, "Lomas Tarumba 12, El Ocotal, La Magdalena Contreras, 10630 Ciudad de México, CDMX", "N 19° 17.855', W 099° 15.723'", null, 0.7500000000000001, "0044", null, null, "Reconfiguracion de ptz", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [6, "Las Flores 25, Rincón de Tlacuilotitla, El Ermitaño, La Magdalena Contreras, 10660 Ciudad de México, CDMX", "19.2988979, -99.2643843", null, 1, "0043", null, null, "Falta etiqueta ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [7, "Ahuatla 31, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "19.3209331, -99.2573513", null, 1, "0029", null, null, "Funciona correctamente faltan chapas y estampas", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [8, "Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "19.3174732, -99.256436", null, 0.7500000000000001, "0027", null, null, "Reconfigurar bala", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [9, "Galeana, Los Padres, Las Cruces, La Magdalena Contreras, 10340 Ciudad de México, CDMX", "N 19° 19.096', W 099° 15.003'", null, 0.7500000000000001, "0034", null, null, "Camara quemada por agua ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [10, "Av Hidalgo 110, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "19.324682, -99.2562896", null, 0.7500000000000001, "0028", null, null, "Faltan chapas y estampas", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [11, "General Vertiz, , San Nicolás Totolapan, Ciudad de México, 10900", "19.2975346, -99.2466657", null, 1, "0013", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [12, "Gral. Vertiz 12-14, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "N 19° 17.561', W 099° 14.848'", null, 0.7500000000000001, "0021", null, null, "Sin chapas", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [13, "Ex-Hacienda de Eslava 4, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "19.284239, -99.24303689999999", null, 0, "0022", null, null, "bandalizada", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [14, "Ex-Hacienda de Eslava 22, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "19.2834691, -99.2423089", null, 1, "0023", null, null, "Funcionando correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [15, "C. Oyametla 11, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.3150414, -99.26104459999999", null, 1, "0040", null, null, "Falta etiqueta ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [16, "C. Sebastián Lerdo de Tejada, Barrio San Francisco, La Magdalena Contreras, 10500 Ciudad de México, CDMX", "19.3075472, -99.2401527", null, 1, "0006", null, null, "Funcionando correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [17, "C. Magdalena, La Magdalena, La Magdalena Contreras, 10910 Ciudad de México, CDMX", "N 19° 18.169', W 099° 14.723'", null, 1, "00.10", null, null, "Funcionando correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [18, "Emilio Carranza 118-108, La Magdalena, La Magdalena Contreras, 10910 Ciudad de México, CDMX", "N 19° 18.237', W 099° 14.480'", null, 1, "0005", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [19, "Tinaco 20, La Concepción, San Nicolás Totolapan, La Magdalena Contreras, 10830 De San Nicolás Totolapan, CDMX", "N 19° 18.225', W 099° 14.261'", null, 1, "0007", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [20, "Felipe Angeles 639, La Guadalupe, La Magdalena Contreras, 10820 Ciudad de México, CDMX", "N 19° 18.362', W 099° 14.025'", null, 1, "0003", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [21, "Emiliano Zapata 135, La Guadalupe, La Magdalena Contreras, 10820 Ciudad de México, CDMX", "19.306884245435903, -99.2320187", null, 0.7500000000000001, "0004", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [22, "Pachuca 13-17, Santa Teresa, Sta Teresa, La Magdalena Contreras, 10710 Ciudad de México, CDMX", "19.3095473, -99.22848420000001", null, 1, "0002", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [23, "C. Durango 1-15, Héroes de Padierna, La Magdalena Contreras, Ciudad de México, CDMX", "19.3112164, -99.22945999999999", null, 1, "0001", null, null, "Falta etiquetas y bala fuera", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [24, "Durazno 16, La Malinche, La Magdalena Contreras, 10010 Ciudad de México, CDMX", "19.3235673, -99.2396201", null, 1, "0026", null, null, "Funcionando correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [25, "Violeta 746, El Toro, La Magdalena Contreras, 10610 Ciudad de México, CDMX", "N 19° 18.705', W 099° 14.602'", null, 1, "0009", null, null, "Funcionando correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [26, "Av. 1113BIS, 10900 De, C. Buenavista, San Nicolás Totolapan, CDMX", "N 19° 17.715', W 099° 15.208'", null, 0.7500000000000001, "0015", null, null, "Falta chapas ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [27, "Calle And. Cañada, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "N 19° 19.162', W 099° 15.157'", null, 1, "0031", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [28, "Puente de Cuadritos 18-b, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.2944345, -99.240336", null, 0.7500000000000001, "0020", null, null, "sin internet ni voltaje ups dañado", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [29, "2a. Cda. Fresnillo 3A, Palmas, La Magdalena Contreras, 10370 Ciudad de México, CDMX", "19.3142713, -99.2512196", null, 0.7500000000000001, "0024", null, null, "Falta etiqueta", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [30, "Poloni, Atacaxco, La Magdalena Contreras, 10378 Ciudad de México, CDMX", "19.3156478, -99.2515452", null, 0.7500000000000001, "0037", null, null, "Falta etiqueta falta bala", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [31, "Popocani, Palmas, Atacaxco, La Magdalena Contreras, 10378 Ciudad de México, CDMX", "19.314867, -99.2498995", null, 0.7500000000000001, "0036", null, null, "Falta etiqueta", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [32, "San Nicolás Totolapan, La Magdalena Contreras, 10643 Ciudad de México, CDMX", "19.2943431, -99.2550552", null, 1, "0017", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [33, "Emiliano Zapata 14-12, Barros Sierra, La Magdalena Contreras, 10380 Ciudad de México, CDMX", "19.3167503, -99.2441762", null, 0.7500000000000001, "0025", null, null, "Bals y estampas faltan ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [34, "San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.28758, -99.24139", null, 1, "0018", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [35, "Ahuatla, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "19.323165, -99.2559637", null, 0.7500000000000001, "0030", null, null, "Falta chapas y estampas 1 bala fuera", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [36, "Fresno, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.3135655, -99.2562043", null, 1, "0041", null, null, "Falta etiqueta", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [37, "Emiliano Zapata 4, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.313428062313644, -99.2561031", null, 1, "0035", null, null, "Funcionando correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [38, "C. Sebastián Lerdo de Tejada 9-39, Barrio San Francisco, La Magdalena Contreras, 10500 Ciudad de México, CDMX", "19.30875974803249, -99.23767400188699", null, 1, "0011", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [39, "Av. de las Torres, Los Padres, La Magdalena Contreras, 10340 Ciudad de México, CDMX", "19.321529608064672, -99.2472528569997", null, 1, "0039", null, null, "Funcionando correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [40, "Río Papaloapan 3, Ampliación Lomas de San Bernabé, Amp. Lomas de San Bernabé, La Magdalena Contreras, 10369 Ciudad de México, CDMX", "19.307060334466797, -99.26964234822262", null, 0.7500000000000001, "0033", null, null, "internet y voltaje correcto verificar consumibles", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [41, "C. Primera de Subestación 24, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.29226595734104, -99.24440921613524", null, 1, "0019", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [42, "Emiliano Zapata 34-10, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.312844851523906, -99.25528241929828", null, 0.7500000000000001, "0042", null, null, "ups dañado y chapas dañadas ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [43, "Cjon. de Soledad 27-119, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "N 19° 17.822', W 099° 14.667'", null, 1, "0014", null, null, "Funcionando correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [44, "cipreses esquina pino, la cruz", "19.306867311114846, -99.23572871975654", null, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [45, "Av. Álvaro Obregón 384, La Cruz, La Magdalena Contreras, 10800 Ciudad de México, CDMX", "N 19° 18.326', W 099° 14.098'", null, 1, "0008", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [46, "Subida a San Bernabé 30-544, El Rosal, La Magdalena Contreras, 10600 Ciudad de México, CDMX", "19.308489642158403, -99.25035216051731", null, 0.7500000000000001, "0060", null, null, "Falta etiqueta ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [47, "Pipico 11-39, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "N 19° 18.115', W 099° 14.473'", null, 0.7500000000000001, "0062", null, null, "Falta agregar camaras al vms ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [48, "Coconetla, El Ocotal, La Magdalena Contreras, Ciudad de México, CDMX", "N 19° 18.301', W 099° 15.516'", null, 1, "0058", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [49, "Río San Juan 28, Ampliación Lomas de San Bernabé, Amp. Lomas de San Bernabé, La Magdalena Contreras, 10369 Ciudad de México, CDMX", "19.308017679809343, -99.26834813825927", null, 1, "0046", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [50, "Av. Carbonera, La Carbonera, La Magdalena Contreras, 10640 Ciudad de México, CDMX", "19.299549197326197, -99.25725852995735", null, 0.7500000000000001, "0059", null, null, "Faltan estampas ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [51, "Atlapizin 18-19, Lomas de San Bernabé, La Magdalena Contreras, 10350 Ciudad de México, CDMX", "19.30842132007045, -99.26606977392387", null, 1, "0056", null, null, "Funcionando correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [52, "And. 12, Tierra Unida, La Magdalena Contreras, 10369 Ciudad de México, CDMX", "19.3031645782583, -99.26852018586595", null, 0.7500000000000001, "0051", null, null, "configurar PTZ nuevamente", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [53, "C. Ermitaño, El Ermitaño, La Magdalena Contreras, 10660 Ciudad de México, CDMX", "19.302807630939213, -99.26668072860353", null, 0.7500000000000001, "0061", null, null, "Falta ptz y etiqueta de número ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [54, "Río Eslava 6, La Concepción, La Magdalena Contreras, 10830 Ciudad de México, CDMX", "N 19° 18.176', W 099° 14.239'", null, 1, "0057", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [55, "Calle Emiliano Zapata 71, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.28606269446364, -99.24517038224272", null, 0.5, "0049", null, null, "Faltan etiquetas y bala fuera", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [56, "F.C. de Cuernavaca 3-85, La Cruz, La Magdalena Contreras, 10800 Ciudad de México, CDMX", "19.306006285091694, -99.23553423537086", null, 0.7500000000000001, "0050", null, null, "Faltan las etiquetas ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [57, "Benito Juárez 32-20, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.298425739701667, -99.24443850766271", null, 1, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [58, "Benito Juárez 34-247, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.297955503002473, -99.24387596080084", null, 0.7500000000000001, "0052", null, null, "internet y voltaje correcto verificar consumibles", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [59, "Vía Chiquita 489, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "19.28573827682753, -99.24235055467163", null, 1, "0063", null, null, "Funcionando correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [60, "Ferrocarril de Cuernavaca 69-68, Las Huertas, La Magdalena Contreras, 10920 Ciudad de México, CDMX", "19.295323254820357, -99.23653024559847", null, 0, "0048", null, null, "Falta una bala ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [61, "C. de Escolta 13, Independencia San Ramón, San Jerónimo Lídice, La Magdalena Contreras, 10200 Ciudad de México, CDMX", "19.332996497476927, -99.2194832911678", null, 1, "0054", null, null, "Funcionando correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [62, "Pajarera, Independencia Batan Sur, La Magdalena Contreras, 10200 Ciudad de México, CDMX", "19.33184891510574, -99.21131412940278", null, 0.7500000000000001, "0053", null, null, "Intermitencia por falla de luz general en la zona ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [63, "C. de Escolta, Independencia San Ramón, San Jerónimo Lídice, La Magdalena Contreras, 10100 Ciudad de México, CDMX", "19.33042002396763, -99.21956255046915", null, 1, "0055", null, null, "Funcionando correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]], "Hoja 2": [[null, null, null, null], [null, null, null, null], [null, null, null, null], [null, null, null, null], [null, null, null, null], [null, null, null, "PROYECTO"], ["No", "TAREA", "R", "PROGRESO"], [1, "En el sitio del C2", null, null], [1.1, "Racks", null, 1], [1.2000000000000002, "UPS ", null, 1], [1.3000000000000003, "Videowall ", null, 1], [1.4, "Estaciones de trabajo", null, 1], [1.5, "Matriz de videowall", null, 1], [1.6, "Monitores de estaciones de trabajo", null, 1], [1.7000000000000002, "Joysticks para control PTZ", null, 1], [1.8000000000000003, "Servidores de almacenamiento", null, 1], [1.9000000000000004, "Servicio de internet dedicado", null, 0.8], ["1.1.1", "Conectividad para 600 cámaras base instalada", null, 0.8], ["1.1.2", "Switches ", null, 1], [2, "Infraestructura Exterior Postes", null, null], [2.1, "Prolongacion buena vista", 17, 0.2], [2.2, "Subestacion campo 1", 19, 0.5], [2.3000000000000003, "Benito juarez Idependencia", 52, 0.5], [2.4000000000000004, "Ixtlahualtongo", 22, 0.45], [2.5000000000000004, "Puente de cuadritos ", 20, 0.45], [2.6000000000000005, "Ojo de agua", 23, 1], [2.7000000000000006, "Aztecas progreso", 16, 1], [2.8000000000000007, "Lerdo", 11, 0.5], [2.900000000000001, "Rio chico", 55, 1], ["2.1.1", "San bernabe", 54, 1], ["2.1.2", "Caseta pajarera", 53, 0.5], ["2.1.3", "Corona del Rosal", 45, 0.2], ["2.1.4", "Las torres", 39, 1], ["2.1.5", "Privada Emiliano Zapata", 42, 0.5], ["2.1.6", "Emiliano Zapata Xicotencatl", 35, 1], ["2.1.7", "Carboneros", 56, 1], ["2.1.8", "Rio papaloapan", 33, 0.5], ["2.1.9", "Andador 6", 51, 0.5], ["2.1.10", "Aztecas 46", 32, 0.5], ["2.1.11", "Minas de Centeno", 44, 0.5], ["2.1.12", "Coconetla", 58, 1], ["2.1.13", "Circuito Cantera", 31, 1], ["2.1.14", "Fernado Leal ", 34, 0.5], ["2.1.15", "Las cruces", 27, 1], ["2.1.16", "Violeta", 9, 1], ["2.1.17", "Canal", 10, 1], ["2.1.18", "Hilda", 5, 1], ["2.1.19", "Buena vista pipico", 62, 0.5], ["2.1.20", "Buena vista ", 12, 1], ["2.1.21", "Buena vista General Vertiz", null, 0.5], ["2.1.22", "Recreo de niño", 14, 0.5], ["2.1.23", "Del rincon ", 21, 0.5], ["2.1.24", "Tinaco", 7, 1], ["2.1.25", "Mitad de canal de puente", 57, 1], ["2.1.26", "Pollitos", 8, 1], ["2.1.27", "Felipe angeles", 3, 1]]};
+
+/* =========================================================================
+   ESTADO GLOBAL
+   ========================================================================= */
+let charts = {};   // instancias de Chart.js
+let allRecords = []; // registros parseados del archivo actual
+
+/* =========================================================================
+   UTILIDADES DE TEXTO
+   ========================================================================= */
+function normalize(s) {
+  return String(s ?? '')
+    .trim()
+    .toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // quita acentos
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+function clearError() {
+  document.getElementById('errorMsg').classList.add('hidden');
+}
+
+/* =========================================================================
+   PARSEO DE COORDENADAS
+   Soporta:
+     - Decimal:  "19.3002518, -99.241366"
+     - GMS:      "N 19° 19.026', W 099° 15.728'"
+   ========================================================================= */
+function parseCoords(str) {
+  if (!str) return null;
+  const s = String(str);
+
+  // Formato decimal: "19.30, -99.24"
+  let m = s.match(/(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/);
+  if (m) {
+    const lat = parseFloat(m[1]);
+    const lon = parseFloat(m[2]);
+    if (!isNaN(lat) && !isNaN(lon)) return { lat, lon };
+  }
+
+  // Formato GMS: N 19° 19.026', W 099° 15.728'
+  m = s.match(/([NS])\s*(\d{1,3})[°\s]+(\d+(?:\.\d+)?)['’]?[^EW]*([EW])\s*(\d{1,3})[°\s]+(\d+(?:\.\d+)?)/i);
+  if (m) {
+    let lat = parseFloat(m[2]) + parseFloat(m[3]) / 60;
+    if (m[1].toUpperCase() === 'S') lat = -lat;
+    let lon = parseFloat(m[5]) + parseFloat(m[6]) / 60;
+    if (m[4].toUpperCase() === 'W') lon = -lon;
+    return { lat, lon };
+  }
+
+  return null;
+}
+
+/* =========================================================================
+   CATEGORIZACIÓN DE OBSERVACIONES
+   ========================================================================= */
+function categorizeObs(obs) {
+  if (!obs || !String(obs).trim()) return 'Sin observación';
+  const s = normalize(obs);
+
+  if (s.includes('BANDALIZ') || s.includes('VANDALIZ'))                  return 'Vandalismo';
+  if (s.includes('FUNCIONA CORRECTA') || s.includes('FUNCIONANDO CORRECTA') || s.includes('FUNCIONA') && s.includes('CORRECT')) return 'Operativo correcto';
+  if (s.includes('ETIQUETA'))                                            return 'Faltan etiquetas';
+  if (s.includes('CHAPA'))                                               return 'Faltan chapas';
+  if (s.includes('PTZ') || s.includes('RECONFIG'))                       return 'Reconfiguración PTZ';
+  if (s.includes('BALA') || s.includes('CAMARA'))                        return 'Cámara / bala dañada';
+  if (s.includes('INTERNET') || s.includes('VOLTAJE') || s.includes('UPS') || s.includes('LUZ') || s.includes('ENERG')) return 'Falla eléctrica / red';
+  return 'Otros';
+}
+
+const OBS_COLORS = {
+  'Operativo correcto':     '#34D399',
+  'Faltan etiquetas':       '#60A5FA',
+  'Faltan chapas':          '#A78BFA',
+  'Reconfiguración PTZ':    '#38BDF8',
+  'Cámara / bala dañada':   '#F87171',
+  'Falla eléctrica / red':  '#FB923C',
+  'Vandalismo':             '#EF4444',
+  'Sin observación':        '#475569',
+  'Otros':                  '#94A3B8'
+};
+
+/* =========================================================================
+   PROGRESO -> BUCKETS
+   ========================================================================= */
+function progresoBucket(p) {
+  if (p === null || p === undefined) return 'Sin dato';
+  if (p >= 100) return 'Completado (100%)';
+  if (p >= 75)  return 'Avanzado (75%)';
+  if (p >= 50)  return 'En proceso (50%)';
+  return 'Pendiente (<50%)';
+}
+const BUCKET_COLORS = {
+  'Completado (100%)': '#34D399',
+  'Avanzado (75%)':    '#38BDF8',
+  'En proceso (50%)':  '#FBBF24',
+  'Pendiente (<50%)':  '#F87171',
+  'Sin dato':          '#475569'
+};
+const BUCKET_ORDER = ['Completado (100%)','Avanzado (75%)','En proceso (50%)','Pendiente (<50%)','Sin dato'];
+
+/* =========================================================================
+   LECTURA DEL WORKBOOK -> REGISTROS
+   Busca, en cada hoja, la fila de encabezado que contenga POSTE +
+   (OBSERVACIONES o COORDENADAS), y mapea columnas por nombre.
+   Esto permite recargar el mismo archivo (o uno con más filas) y que el
+   dashboard se reconstruya automáticamente.
+   ========================================================================= */
+function extractRecords(sheetsData) {
+  const records = [];
+  let projectName = null;
+
+  Object.keys(sheetsData).forEach(sheetName => {
+    const rows = sheetsData[sheetName];
+
+    // 1) localizar fila de encabezado
+    let headerRowIdx = -1;
+    let colMap = {};
+    const searchLimit = Math.min(rows.length, 20);
+
+    for (let r = 0; r < searchLimit; r++) {
+      const row = rows[r] || [];
+      const norm = row.map(c => normalize(c));
+      if (norm.includes('POSTE') && (norm.includes('OBSERVACIONES') || norm.includes('COORDENADAS'))) {
+        headerRowIdx = r;
+        norm.forEach((h, idx) => {
+          if (h === 'POSTE')        colMap.poste = idx;
+          else if (h === 'COORDENADAS')  colMap.coords = idx;
+          else if (h === 'OBSERVACIONES') colMap.obs = idx;
+          else if (h === 'PROGRESO')      colMap.progreso = idx;
+          else if (h === 'ANALITICOS')    colMap.analiticos = idx;
+          else if (h === 'TAREA')         colMap.tarea = idx;
+          else if (h === 'NO')            colMap.no = idx;
+        });
+        break;
+      }
+    }
+
+    if (headerRowIdx === -1) return; // esta hoja no tiene la estructura esperada
+
+    // intentar localizar un nombre de proyecto (texto en columna A, antes del encabezado)
+    if (!projectName) {
+      for (let r = 0; r < headerRowIdx; r++) {
+        const v = rows[r] && rows[r][0];
+        if (v && typeof v === 'string' && v.trim().length > 3) {
+          projectName = v.trim();
+          break;
+        }
+      }
+    }
+
+    // 2) extraer filas de datos
+    for (let r = headerRowIdx + 1; r < rows.length; r++) {
+      const row = rows[r] || [];
+
+      const poste = colMap.poste !== undefined ? row[colMap.poste] : null;
+      const obs   = colMap.obs   !== undefined ? row[colMap.obs]   : null;
+      const coords= colMap.coords!== undefined ? row[colMap.coords]: null;
+      const tarea = colMap.tarea !== undefined ? row[colMap.tarea] : null;
+
+      const isEmpty = v => v === null || v === undefined || String(v).trim() === '';
+      if (isEmpty(poste) && isEmpty(obs) && isEmpty(coords) && isEmpty(tarea)) continue;
+
+      let progreso = null;
+      if (colMap.progreso !== undefined) {
+        let v = row[colMap.progreso];
+        if (v !== null && v !== undefined && v !== '') {
+          if (typeof v === 'string') v = parseFloat(v.replace('%','').replace(',','.'));
+          if (typeof v === 'number' && !isNaN(v)) {
+            progreso = v <= 1 ? v * 100 : v;
+          }
+        }
+      }
+
+      const analiticosRaw = colMap.analiticos !== undefined ? row[colMap.analiticos] : null;
+
+      records.push({
+        no: colMap.no !== undefined ? row[colMap.no] : (records.length + 1),
+        poste: poste !== null && poste !== undefined ? String(poste).trim() : '',
+        tarea: tarea !== null && tarea !== undefined ? String(tarea).trim() : '',
+        coordsRaw: coords !== null && coords !== undefined ? String(coords).trim() : '',
+        coords: parseCoords(coords),
+        obs: obs !== null && obs !== undefined ? String(obs).trim() : '',
+        obsCategoria: categorizeObs(obs),
+        progreso: progreso,
+        analiticos: (analiticosRaw !== null && analiticosRaw !== undefined && String(analiticosRaw).trim() !== '') ? String(analiticosRaw).trim() : null,
+        sheet: sheetName
+      });
+    }
+  });
+
+  return { records, projectName };
+}
+
+/* =========================================================================
+   RENDER: KPIs
+   ========================================================================= */
+function renderKPIs(records, projectName) {
+  const total = records.length;
+  const conAnaliticos = records.filter(r => r.analiticos).length;
+  const sinAnaliticos = total - conAnaliticos;
+
+  document.getElementById('kpiTotalPostes').textContent = total;
+  document.getElementById('kpiAnaliticos').textContent = `${conAnaliticos} con analíticos`;
+  document.getElementById('kpiSinAnaliticos').textContent = `${sinAnaliticos} sin analíticos`;
+
+  // Coordenadas válidas
+  const conCoords = records.filter(r => r.coords).length;
+  document.getElementById('kpiCoords').textContent = `${conCoords} / ${total}`;
+
+  const sample = records.find(r => r.tarea);
+  document.getElementById('kpiSampleAddress').textContent = sample
+    ? `Ej.: ${sample.tarea.length > 70 ? sample.tarea.slice(0,70) + '…' : sample.tarea}`
+    : 'Sin datos de dirección aún.';
+
+  // Avance promedio
+  const conProgreso = records.filter(r => r.progreso !== null);
+  const avg = conProgreso.length
+    ? conProgreso.reduce((a, r) => a + r.progreso, 0) / conProgreso.length
+    : 0;
+
+  document.getElementById('kpiAvance').textContent = `${avg.toFixed(1)}%`;
+  document.getElementById('kpiAvanceBar').style.width = `${Math.min(100, avg)}%`;
+
+  const barColor = avg >= 90 ? 'bg-mint' : avg >= 70 ? 'bg-cyan' : avg >= 50 ? 'bg-amber' : 'bg-rose';
+  const bar = document.getElementById('kpiAvanceBar');
+  bar.className = `pbar-fill ${barColor}`;
+  bar.style.width = `${Math.min(100, avg)}%`;
+
+  document.getElementById('kpiProjectName').textContent = projectName ? `Proyecto: ${projectName}` : '\u00A0';
+}
+
+/* =========================================================================
+   RENDER: CHARTS
+   ========================================================================= */
+const CHART_FONT = { family: 'Inter', size: 12 };
+const GRID_COLOR = 'rgba(255,255,255,0.06)';
+const TICK_COLOR = '#8B9AC2';
+
+function destroyChart(key) {
+  if (charts[key]) { charts[key].destroy(); delete charts[key]; }
+}
+
+function renderCharts(records) {
+  renderObservacionesChart(records);
+  renderAvanceChart(records);
+  renderAnaliticosChart(records);
+  renderPendientesChart(records);
+  renderMapaChart(records);
+}
+
+// 1) Bar: distribución de observaciones por categoría
+function renderObservacionesChart(records) {
+  const counts = {};
+  records.forEach(r => {
+    counts[r.obsCategoria] = (counts[r.obsCategoria] || 0) + 1;
+  });
+  const labels = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
+  const data = labels.map(l => counts[l]);
+  const colors = labels.map(l => OBS_COLORS[l] || '#94A3B8');
+
+  destroyChart('obs');
+  charts.obs = new Chart(document.getElementById('chartObservaciones'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label: 'Postes', data, backgroundColor: colors, borderRadius: 6, maxBarThickness: 46 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1B2740', borderColor: '#283452', borderWidth: 1,
+          titleFont: CHART_FONT, bodyFont: CHART_FONT, padding: 10,
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.y} poste${ctx.parsed.y === 1 ? '' : 's'}`
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: TICK_COLOR, font: CHART_FONT, autoSkip: false, maxRotation: 30, minRotation: 0 }, grid: { display: false } },
+        y: { ticks: { color: TICK_COLOR, font: CHART_FONT, precision: 0 }, grid: { color: GRID_COLOR }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// 2) Donut: avance del proyecto (buckets de progreso)
+function renderAvanceChart(records) {
+  const counts = {};
+  records.forEach(r => {
+    const b = progresoBucket(r.progreso);
+    counts[b] = (counts[b] || 0) + 1;
+  });
+  const labels = BUCKET_ORDER.filter(b => counts[b]);
+  const data = labels.map(l => counts[l]);
+  const colors = labels.map(l => BUCKET_COLORS[l]);
+
+  const conProgreso = records.filter(r => r.progreso !== null);
+  const avg = conProgreso.length ? conProgreso.reduce((a,r) => a + r.progreso, 0) / conProgreso.length : 0;
+
+  destroyChart('avance');
+  charts.avance = new Chart(document.getElementById('chartAvance'), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: TICK_COLOR, font: { ...CHART_FONT, size: 11 }, boxWidth: 12, padding: 10 } },
+        tooltip: {
+          backgroundColor: '#1B2740', borderColor: '#283452', borderWidth: 1,
+          titleFont: CHART_FONT, bodyFont: CHART_FONT, padding: 10,
+          callbacks: {
+            label: ctx => ` ${ctx.label}: ${ctx.parsed} poste${ctx.parsed === 1 ? '' : 's'} (${(ctx.parsed / records.length * 100).toFixed(0)}%)`
+          }
+        }
+      }
+    },
+    plugins: [{
+      id: 'centerAvg',
+      afterDraw(chart) {
+        const { ctx, chartArea } = chart;
+        const x = (chartArea.left + chartArea.right) / 2;
+        const y = (chartArea.top + chartArea.bottom) / 2;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '700 22px "Space Grotesk", sans-serif';
+        ctx.fillStyle = '#E8EDF7';
+        ctx.fillText(`${avg.toFixed(0)}%`, x, y - 6);
+        ctx.font = '500 10px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#8B9AC2';
+        ctx.fillText('PROMEDIO', x, y + 14);
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+// 3) Donut: cobertura de analíticos
+function renderAnaliticosChart(records) {
+  const con = records.filter(r => r.analiticos).length;
+  const sin = records.length - con;
+
+  destroyChart('analiticos');
+  charts.analiticos = new Chart(document.getElementById('chartAnaliticos'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Con analíticos', 'Sin analíticos'],
+      datasets: [{ data: [con, sin], backgroundColor: ['#FBBF24', '#283452'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: TICK_COLOR, font: { ...CHART_FONT, size: 11 }, boxWidth: 12, padding: 10 } },
+        tooltip: {
+          backgroundColor: '#1B2740', borderColor: '#283452', borderWidth: 1,
+          titleFont: CHART_FONT, bodyFont: CHART_FONT, padding: 10,
+          callbacks: {
+            label: ctx => {
+              const total = con + sin;
+              return ` ${ctx.label}: ${ctx.parsed} (${total ? (ctx.parsed/total*100).toFixed(0) : 0}%)`;
+            }
+          }
+        }
+      }
+    },
+    plugins: [{
+      id: 'centerCount',
+      afterDraw(chart) {
+        const { ctx, chartArea } = chart;
+        const x = (chartArea.left + chartArea.right) / 2;
+        const y = (chartArea.top + chartArea.bottom) / 2;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '700 22px "Space Grotesk", sans-serif';
+        ctx.fillStyle = '#FBBF24';
+        ctx.fillText(`${con}`, x, y - 6);
+        ctx.font = '500 10px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#8B9AC2';
+        ctx.fillText('ANALÍTICOS', x, y + 14);
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+// 4) Bar horizontal: postes con menor avance (top 10 pendientes)
+function renderPendientesChart(records) {
+  const withProgress = records
+    .filter(r => r.progreso !== null && r.poste)
+    .sort((a, b) => a.progreso - b.progreso)
+    .slice(0, 10);
+
+  const labels = withProgress.map(r => `Poste ${r.poste}`);
+  const data = withProgress.map(r => r.progreso);
+  const colors = withProgress.map(r => BUCKET_COLORS[progresoBucket(r.progreso)]);
+  const obsList = withProgress.map(r => r.obs || 'Sin observación');
+
+  destroyChart('pendientes');
+  charts.pendientes = new Chart(document.getElementById('chartPendientes'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Progreso (%)', data, backgroundColor: colors, borderRadius: 6 }] },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1B2740', borderColor: '#283452', borderWidth: 1,
+          titleFont: CHART_FONT, bodyFont: CHART_FONT, padding: 10,
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.x}% completado`,
+            afterLabel: ctx => {
+              const o = obsList[ctx.dataIndex];
+              return o.length > 60 ? o.slice(0,60) + '…' : o;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { min: 0, max: 100, ticks: { color: TICK_COLOR, font: CHART_FONT, callback: v => v + '%' }, grid: { color: GRID_COLOR } },
+        y: { ticks: { color: TICK_COLOR, font: { ...CHART_FONT, size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// 5) Scatter: distribución geográfica (lat/lon) por bucket de progreso
+function renderMapaChart(records) {
+  const withCoords = records.filter(r => r.coords);
+
+  const datasetsMap = {};
+  BUCKET_ORDER.forEach(b => datasetsMap[b] = []);
+
+  withCoords.forEach(r => {
+    const b = progresoBucket(r.progreso);
+    datasetsMap[b].push({ x: r.coords.lon, y: r.coords.lat, poste: r.poste, progreso: r.progreso });
+  });
+
+  const datasets = BUCKET_ORDER
+    .filter(b => datasetsMap[b].length)
+    .map(b => ({
+      label: b,
+      data: datasetsMap[b],
+      backgroundColor: BUCKET_COLORS[b],
+      pointRadius: 5,
+      pointHoverRadius: 7
+    }));
+
+  destroyChart('mapa');
+  charts.mapa = new Chart(document.getElementById('chartMapa'), {
+    type: 'scatter',
+    data: { datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: TICK_COLOR, font: { ...CHART_FONT, size: 10 }, boxWidth: 10, padding: 8 } },
+        tooltip: {
+          backgroundColor: '#1B2740', borderColor: '#283452', borderWidth: 1,
+          titleFont: CHART_FONT, bodyFont: CHART_FONT, padding: 10,
+          callbacks: {
+            label: ctx => {
+              const p = ctx.raw;
+              return ` Poste ${p.poste || '—'} · ${p.progreso !== null ? p.progreso.toFixed(0) + '%' : 'sin dato'}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Longitud', color: TICK_COLOR, font: { ...CHART_FONT, size: 10 } }, ticks: { color: TICK_COLOR, font: { ...CHART_FONT, size: 10 } }, grid: { color: GRID_COLOR } },
+        y: { title: { display: true, text: 'Latitud', color: TICK_COLOR, font: { ...CHART_FONT, size: 10 } }, ticks: { color: TICK_COLOR, font: { ...CHART_FONT, size: 10 } }, grid: { color: GRID_COLOR } }
+      }
+    }
+  });
+
+  if (!withCoords.length) {
+    const ctx = document.getElementById('chartMapa').getContext('2d');
+    ctx.save();
+    ctx.fillStyle = '#8B9AC2';
+    ctx.font = '12px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText('No se encontraron coordenadas válidas en este archivo', ctx.canvas.width/2, ctx.canvas.height/2);
+    ctx.restore();
+  }
+}
+
+/* =========================================================================
+   RENDER: TABLA
+   ========================================================================= */
+function progressBadgeColor(p) {
+  if (p === null) return { bar: 'bg-line', text: 'text-muted' };
+  if (p >= 100) return { bar: 'bg-mint', text: 'text-mint' };
+  if (p >= 75)  return { bar: 'bg-cyan', text: 'text-cyan' };
+  if (p >= 50)  return { bar: 'bg-amber', text: 'text-amber' };
+  return { bar: 'bg-rose', text: 'text-rose' };
+}
+
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+}
+
+function renderTable(records) {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  records.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.className = r.analiticos ? 'row-analitico' : '';
+    tr.dataset.search = normalize(`${r.poste} ${r.tarea} ${r.obs} ${r.coordsRaw}`);
+
+    const pColor = progressBadgeColor(r.progreso);
+    const progresoHtml = r.progreso === null
+      ? `<span class="text-muted font-mono text-xs">—</span>`
+      : `<div class="flex items-center gap-2">
+           <span class="font-mono text-xs ${pColor.text}">${r.progreso.toFixed(0)}%</span>
+           <div class="pbar-track w-16"><div class="pbar-fill ${pColor.bar}" style="width:${Math.min(100, r.progreso)}%"></div></div>
+         </div>`;
+
+    const analiticosHtml = r.analiticos
+      ? `<span class="badge bg-amber/15 text-amber border border-amber/30">${escapeHtml(r.analiticos)}</span>`
+      : `<span class="text-muted text-xs">—</span>`;
+
+    tr.innerHTML = `
+      <td class="px-3 py-2 font-mono text-xs text-muted">${escapeHtml(r.no)}</td>
+      <td class="px-3 py-2 font-mono text-sm font-medium text-cyan whitespace-nowrap">${escapeHtml(r.poste || '—')}</td>
+      <td class="px-3 py-2 text-xs text-ink max-w-xs">${escapeHtml(r.tarea || '—')}</td>
+      <td class="px-3 py-2 font-mono text-xs text-muted whitespace-nowrap">${escapeHtml(r.coordsRaw || '—')}</td>
+      <td class="px-3 py-2">${progresoHtml}</td>
+      <td class="px-3 py-2 text-xs text-ink max-w-xs">${escapeHtml(r.obs || '—')}</td>
+      <td class="px-3 py-2">${analiticosHtml}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('tableCount').textContent = `${records.length} registros`;
+}
+
+// filtro de búsqueda
+document.getElementById('tableSearch').addEventListener('input', e => {
+  const q = normalize(e.target.value);
+  const rows = document.querySelectorAll('#tableBody tr');
+  let visible = 0;
+  rows.forEach(tr => {
+    const match = !q || tr.dataset.search.includes(q);
+    tr.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  document.getElementById('tableCount').textContent = `${visible} de ${rows.length} registros`;
+});
+
+/* =========================================================================
+   RENDER PRINCIPAL
+   ========================================================================= */
+function renderDashboard(records, projectName) {
+  renderKPIs(records, projectName);
+  renderCharts(records);
+  renderTable(records);
+
+  document.getElementById('emptyState').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+
+  const now = new Date();
+  document.getElementById('subtitle').textContent =
+    `Última actualización: ${now.toLocaleDateString('es-MX')} ${now.toLocaleTimeString('es-MX')} · ${records.length} registros cargados`;
+}
+
+/* =========================================================================
+   CARGA DE ARCHIVO
+   ========================================================================= */
+function workbookToSheetsDict(workbook) {
+  const sheetsData = {};
+  workbook.SheetNames.forEach(sheetName => {
+    const ws = workbook.Sheets[sheetName];
+    sheetsData[sheetName] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: true });
+  });
+  return sheetsData;
+}
+
+function handleFile(file) {
+  if (!file) return;
+  clearError();
+
+  document.getElementById('fileStatus').textContent = `Leyendo "${file.name}"…`;
+
+  const reader = new FileReader();
+  reader.onload = function (evt) {
+    try {
+      const data = new Uint8Array(evt.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+
+      const { records, projectName } = extractRecords(workbookToSheetsDict(workbook));
+
+      if (!records.length) {
+        showError('No se encontraron datos con la estructura esperada. Verifica que el archivo tenga columnas como POSTE, COORDENADAS, PROGRESO, OBSERVACIONES y ANALITICOS.');
+        document.getElementById('fileStatus').textContent = `"${file.name}" — sin coincidencias.`;
+        return;
+      }
+
+      allRecords = records;
+      renderDashboard(records, projectName);
+      document.getElementById('fileStatus').innerHTML =
+        `<span class="text-mint">●</span>&nbsp; "${escapeHtml(file.name)}" — ${records.length} registros`;
+    } catch (err) {
+      showError('Error al leer el archivo: ' + err.message);
+      document.getElementById('fileStatus').textContent = `Error al leer "${file.name}".`;
+    }
+  };
+  reader.onerror = function () {
+    showError('No se pudo leer el archivo seleccionado.');
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+document.getElementById('fileInput').addEventListener('change', e => {
+  handleFile(e.target.files[0]);
+});
+
+// drag & drop sobre la zona vacía
+const dropzone = document.getElementById('dropzone');
+['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, e => {
+  e.preventDefault(); dropzone.classList.add('dragover');
+}));
+['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, e => {
+  e.preventDefault(); dropzone.classList.remove('dragover');
+}));
+dropzone.addEventListener('drop', e => {
+  const file = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+/* =========================================================================
+   CARGA INICIAL: datos precargados embebidos en el archivo
+   ========================================================================= */
+(function loadEmbeddedData() {
+  try {
+    if (typeof EMBEDDED_SHEETS === 'undefined') return;
+    const { records, projectName } = extractRecords(EMBEDDED_SHEETS);
+    if (!records.length) return;
+
+    allRecords = records;
+    renderKPIs(records, projectName);
+    renderCharts(records);
+    renderTable(records);
+
+    document.getElementById('emptyState').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+
+    document.getElementById('subtitle').textContent =
+      `Datos precargados${projectName ? ' · ' + projectName : ''} · ${records.length} registros · usa "Cargar / Actualizar Excel" para reemplazarlos`;
+    document.getElementById('fileStatus').innerHTML =
+      `<span class="text-mint">●</span>&nbsp; Programa_de_Proyecto.xlsx — ${records.length} registros (precargado)`;
+  } catch (err) {
+    console.error('No se pudieron cargar los datos precargados:', err);
+  }
+})();
+</script>
+</body>
+</html>
