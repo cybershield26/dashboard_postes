@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Infraestructura - Postes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0f172a; font-family: 'Inter', system-ui, sans-serif; color: #f1f5f9; }
+        .glass-card { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
+        .sidebar-item:hover { background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="border-b border-slate-800 p-4 flex justify-between items-center bg-slate-900/50">
+        <div class="flex items-center gap-2">
+            <div class="bg-blue-600 p-2 rounded-lg text-white"><i class="fas fa-network-wired"></i></div>
+            <span class="font-bold text-lg">Infrastructure Monitor</span>
+        </div>
+        <div class="text-sm text-slate-400" id="currentDate"></div>
+    </nav>
+
+    <main class="p-6 max-w-7xl mx-auto space-y-6">
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="glass-card p-6 rounded-2xl">
+                <p class="text-slate-400 text-sm">Total Postes</p>
+                <h3 class="text-3xl font-bold mt-1" id="kpiTotal">--</h3>
+            </div>
+            <div class="glass-card p-6 rounded-2xl">
+                <p class="text-slate-400 text-sm">Avance Promedio</p>
+                <h3 class="text-3xl font-bold mt-1" id="kpiAvance">--</h3>
+            </div>
+            <div class="glass-card p-6 rounded-2xl">
+                <p class="text-slate-400 text-sm">Con Observaciones</p>
+                <h3 class="text-3xl font-bold mt-1" id="kpiObs">--</h3>
+            </div>
+            <div class="glass-card p-6 rounded-2xl">
+                <p class="text-slate-400 text-sm">Estado del Sistema</p>
+                <h3 class="text-3xl font-bold mt-1 text-emerald-400">Online</h3>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass-card p-6 rounded-2xl md:col-span-2">
+                <h2 class="text-lg font-semibold mb-4">Avance General</h2>
+                <canvas id="barChart" height="100"></canvas>
+            </div>
+            <div class="glass-card p-6 rounded-2xl">
+                <h2 class="text-lg font-semibold mb-4">Distribución</h2>
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="glass-card p-6 rounded-2xl overflow-hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-semibold">Detalle de Infraestructura</h2>
+                <input type="text" id="searchInput" placeholder="Filtrar por dirección..." class="bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm" id="mainTable">
+                    <thead>
+                        <tr class="text-slate-400 border-b border-slate-700">
+                            <th class="p-4">Poste</th>
+                            <th class="p-4">Dirección</th>
+                            <th class="p-4">Avance</th>
+                            <th class="p-4">Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-800"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const data = [
+            {"id": 1, "direccion": "Aztecas 46, San Bernabé Ocotepec, Lomas de San Bernabé, La Magdalena Contreras, 10350 Ciudad de México, CDMX", "coordenadas": "N 19° 19.026', W 099° 15.728'", "avance": 75, "poste": 32, "observaciones": "PTZ fuera HV"},
+            {"id": 2, "direccion": "Progreso 21, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "coordenadas": "19.3002518, -99.241366", "avance": 100, "poste": 16, "observaciones": "Funciona correctamente"},
+            {"id": 3, "direccion": "Luis Echeverría Álvarez MZ37LT14, La Malinche, La Magdalena Contreras, 10320 Ciudad de México, CDMX", "coordenadas": "19.3249086, -99.2468062", "avance": 50, "poste": 45, "observaciones": "Bala fuera daño provedor"},
+            {"id": 4, "direccion": "C. Oyametla 18, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "coordenadas": "19.3210375, -99.25888649999999", "avance": 100, "poste": 38, "observaciones": "Funciona correctamente"},
+            {"id": 5, "direccion": "Lomas Tarumba 12, El Ocotal, La Magdalena Contreras, 10630 Ciudad de México, CDMX", "coordenadas": "N 19° 17.855', W 099° 15.723'", "avance": 75, "poste": 44, "observaciones": "PTZ fuera HV"},
+            {"id": 6, "direccion": "Las Flores 25, Rincón de Tlacuilotitla, El Ermitaño, La Magdalena Contreras, 10660 Ciudad de México, CDMX", "coordenadas": "19.2988979, -99.2643843", "avance": 100, "poste": 43, "observaciones": "Funciona correctamente"},
+            {"id": 7, "direccion": "Ahuatla 31, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "coordenadas": "19.3209331, -99.2573513", "avance": 100, "poste": 29, "observaciones": "Funciona correctamente"},
+            {"id": 8, "direccion": "Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "coordenadas": "19.3174732, -99.256436", "avance": 100, "poste": 27, "observaciones": "Funciona correctamente"},
+            {"id": 9, "direccion": "Galeana, Los Padres, Las Cruces, La Magdalena Contreras, 10340 Ciudad de México, CDMX", "coordenadas": "N 19° 19.096', W 099° 15.003'", "avance": 100, "poste": 34, "observaciones": "Funciona correctamente"},
+            {"id": 10, "direccion": "Av Hidalgo 110, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "coordenadas": "19.324682, -99.2562896", "avance": 75, "poste": 28, "observaciones": "PTZ fuera HV"},
+            {"id": 11, "direccion": "General Vertiz, , San Nicolás Totolapan, Ciudad de México, 10900", "coordenadas": "19.2975346, -99.2466657", "avance": 100, "poste": 13, "observaciones": "Funciona correctamente"},
+            {"id": 12, "direccion": "Gral. Vertiz 12-14, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "coordenadas": "N 19° 17.561', W 099° 14.848'", "avance": 100, "poste": 21, "observaciones": "Funciona correctamente"},
+            {"id": 13, "direccion": "Ex-Hacienda de Eslava 4, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "coordenadas": "19.284239, -99.24303689999999", "avance": 0, "poste": 22, "observaciones": "camaras bala funcionan ok, ptz hay que desmontar"},
+            {"id": 14, "direccion": "Ex-Hacienda de Eslava 22, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "coordenadas": "19.2834691, -99.2423089", "avance": 100, "poste": 23, "observaciones": "Funciona correctamente"},
+            {"id": 15, "direccion": "C. Oyametla 11, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "coordenadas": "19.3150414, -99.26104459999999", "avance": 75, "poste": 40, "observaciones": "PTZ fuera HV"}
+        ];
+
+        // Rellenar datos
+        document.getElementById('kpiTotal').textContent = data.length;
+        document.getElementById('kpiAvance').textContent = Math.round(data.reduce((a,b) => a + b.avance, 0) / data.length) + "%";
+        document.getElementById('kpiObs').textContent = data.filter(d => d.observaciones.toLowerCase() !== 'funciona correctamente').length;
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+
+        // Tabla
+        const tbody = document.getElementById('tableBody');
+        function renderTable(filter = '') {
+            tbody.innerHTML = '';
+            data.filter(d => d.direccion.toLowerCase().includes(filter.toLowerCase())).forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800 transition";
+                tr.innerHTML = `<td class="p-4 font-bold text-blue-400">${item.poste}</td><td class="p-4">${item.direccion}</td><td class="p-4"><div class="w-full bg-slate-700 h-2 rounded"><div class="bg-blue-500 h-2 rounded" style="width:${item.avance}%"></div></div></td><td class="p-4 text-xs">${item.observaciones}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+        renderTable();
+        document.getElementById('searchInput').addEventListener('input', (e) => renderTable(e.target.value));
+
+        // Gráficos
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: { labels: data.map(d => d.poste), datasets: [{ label: 'Avance %', data: data.map(d => d.avance), backgroundColor: '#3b82f6' }] },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+        new Chart(document.getElementById('pieChart'), {
+            type: 'doughnut',
+            data: { labels: ['Completo', 'En Proceso'], datasets: [{ data: [data.filter(d => d.avance === 100).length, data.filter(d => d.avance < 100).length], backgroundColor: ['#10b981', '#ef4444'] }] }
+        });
+    </script>
+</body>
+</html>
