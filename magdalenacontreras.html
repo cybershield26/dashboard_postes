@@ -1,0 +1,1027 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Telemetry - Executive Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0F172A',
+                        darkCard: 'rgba(30, 41, 59, 0.7)',
+                        brandBlue: '#2563EB',
+                        brandCyan: '#06B6D4',
+                        brandEmerald: '#10B981',
+                        brandPurple: '#8B5CF6',
+                        brandOrange: '#F97316',
+                        brandCoral: '#EF4444',
+                        brandYellow: '#FACC15',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (XLSX) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Leaflet Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #111827 100%);
+            background-attachment: fixed;
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.4);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.7);
+        }
+        /* Map custom height */
+        #map {
+            height: 400px;
+            border-radius: 12px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen pb-12">
+
+    <!-- TOP PERMANENT FILE LOADER -->
+    <div class="sticky top-0 z-50 w-full glass-panel border-b border-white/10 shadow-lg px-6 py-4 mb-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-gradient-to-tr from-brandPurple to-brandCyan rounded-xl shadow-lg shadow-brandPurple/30">
+                    <i class="fa-solid fa-chart-line text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-brandCyan bg-clip-text text-transparent">
+                        SaaS Telemetry
+                    </h1>
+                    <p class="text-xs text-slate-400">Plataforma Inteligente de Infraestructura & Postes</p>
+                </div>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <label for="fileInput" class="w-full md:w-auto flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-gradient-to-r from-slate-800 to-slate-700 hover:from-slate-700 hover:to-slate-600 border border-white/10 hover:border-brandCyan/50 text-slate-200 hover:text-white font-medium cursor-pointer transition-all duration-300 shadow-md">
+                    <i class="fa-solid fa-cloud-arrow-up text-brandCyan text-lg animate-pulse"></i>
+                    <span>Cargar Excel, XLS o CSV</span>
+                    <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" class="hidden" />
+                </label>
+                <div id="fileInfo" class="hidden md:flex flex-col text-right">
+                    <span id="fileName" class="text-sm font-semibold text-brandCyan truncate max-w-[180px]">Archivo.xlsx</span>
+                    <span class="text-[10px] text-slate-400">Listo para analizar</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN BODY CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+        <!-- INITIAL EMPTY STATE OR ERROR STATE -->
+        <div id="placeholderState" class="glass-panel rounded-2xl p-12 text-center max-w-2xl mx-auto my-12 transition-all duration-500">
+            <div class="w-20 h-20 mx-auto rounded-full bg-slate-800/80 flex items-center justify-center mb-6 border border-white/10 shadow-inner">
+                <i class="fa-solid fa-file-excel text-4xl text-brandEmerald"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Esperando datos de infraestructura</h3>
+            <p class="text-slate-400 text-sm mb-6 max-w-md mx-auto">
+                Sube un archivo de Excel o CSV con columnas de Direcciones, Coordenadas, Avances, Observaciones y Analíticos para estructurar tu panel ejecutivo en tiempo real.
+            </p>
+            <div class="inline-flex items-center gap-2 text-xs text-brandCyan bg-brandCyan/10 px-4 py-2 rounded-full border border-brandCyan/20">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Los datos no se suben a ningún servidor. Procesamiento 100% local.</span>
+            </div>
+        </div>
+
+        <!-- DASHBOARD GRID (Hidden until data is loaded) -->
+        <div id="dashboardContent" class="hidden space-y-8">
+
+            <!-- KPIs GRID -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- KPI 1: TOTAL POSTES -->
+                <div class="glass-panel glass-card-hover rounded-2xl p-6 transition-all duration-300 relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-tower-broadcast text-8xl text-brandBlue"></i>
+                    </div>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold tracking-wider text-blue-400 uppercase">Total Postes</span>
+                        <div class="w-10 h-10 rounded-lg bg-brandBlue/20 flex items-center justify-center border border-brandBlue/30 text-brandBlue shadow-md shadow-brandBlue/20">
+                            <i class="fa-solid fa-tower-broadcast text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span id="kpiTotalPostes" class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">-</span>
+                        <div class="flex items-center gap-1.5 mt-2 text-xs text-brandEmerald">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                            <span>Catastro de Red Activo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 2: AVANCE PROYECTO -->
+                <div class="glass-panel glass-card-hover rounded-2xl p-6 transition-all duration-300 relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-circle-check text-8xl text-brandEmerald"></i>
+                    </div>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold tracking-wider text-brandEmerald uppercase">Avance Promedio</span>
+                        <div class="w-10 h-10 rounded-lg bg-brandEmerald/20 flex items-center justify-center border border-brandEmerald/30 text-brandEmerald shadow-md shadow-brandEmerald/20">
+                            <i class="fa-solid fa-circle-notch fa-spin text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span id="kpiAvancePct" class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">0%</span>
+                        <div class="flex items-center justify-between mt-2 text-xs text-slate-400">
+                            <span id="kpiCompletados" class="text-brandEmerald font-medium">0 Comps</span>
+                            <span class="text-slate-600">|</span>
+                            <span id="kpiPendientes" class="text-brandOrange font-medium">0 Pends</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 3: ANALÍTICOS (DESTACADO) -->
+                <div class="glass-panel glass-card-hover rounded-2xl p-6 transition-all duration-300 relative overflow-hidden group border-brandPurple/30 shadow-lg shadow-brandPurple/5 bg-gradient-to-br from-brandPurple/10 via-slate-900/60 to-slate-900/40">
+                    <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-brain text-8xl text-brandPurple"></i>
+                    </div>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold tracking-wider text-purple-400 uppercase">Analíticos (High-Priority)</span>
+                        <div class="w-10 h-10 rounded-lg bg-brandPurple/30 flex items-center justify-center border border-brandPurple/50 text-brandPurple shadow-lg shadow-brandPurple/40">
+                            <i class="fa-solid fa-brain text-lg animate-pulse"></i>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span id="kpiAnaliticosCount" class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">-</span>
+                        <div class="flex items-center gap-1.5 mt-2 text-xs text-brandPurple">
+                            <i class="fa-solid fa-star-of-life fa-spin"></i>
+                            <span id="kpiAnaliticosPct">0% de la Red Integrada</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 4: OBSERVACIONES -->
+                <div class="glass-panel glass-card-hover rounded-2xl p-6 transition-all duration-300 relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-triangle-exclamation text-8xl text-brandOrange"></i>
+                    </div>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold tracking-wider text-orange-400 uppercase">Observaciones</span>
+                        <div class="w-10 h-10 rounded-lg bg-brandOrange/20 flex items-center justify-center border border-brandOrange/30 text-brandOrange shadow-md shadow-brandOrange/20">
+                            <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span id="kpiObservacionesCount" class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">-</span>
+                        <div class="flex items-center justify-between mt-2 text-xs text-slate-400">
+                            <span id="kpiCriticas" class="text-brandCoral font-medium">0 Críticas</span>
+                            <span class="text-slate-600">|</span>
+                            <span id="kpiObsPendientes" class="text-brandYellow font-medium">0 Sin Resolver</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GEOLOCATION MAP AREA -->
+            <div class="glass-panel rounded-2xl p-6 shadow-xl relative">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-brandCyan animate-ping"></span>
+                        <h3 class="text-lg font-bold text-white tracking-wide">Mapa Satelital de Infraestructura</h3>
+                    </div>
+                    <div class="text-xs text-slate-400">Geolocalización en Tiempo Real</div>
+                </div>
+                <div id="map" class="shadow-inner border border-white/10"></div>
+            </div>
+
+            <!-- ANALYTICS CHARTS GRID -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- CHART 1: DONA (AVANCE PROYECTO) -->
+                <div class="glass-panel rounded-2xl p-6 flex flex-col h-[350px]">
+                    <h4 class="text-sm font-semibold text-slate-300 mb-4 tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-brandEmerald"></i> Distribución de Avance
+                    </h4>
+                    <div class="flex-1 relative flex items-center justify-center">
+                        <canvas id="chartDonaAvance"></canvas>
+                    </div>
+                </div>
+
+                <!-- CHART 2: BARRAS HORIZONTALES (TOP OBSERVACIONES) -->
+                <div class="glass-panel rounded-2xl p-6 flex flex-col h-[350px]">
+                    <h4 class="text-sm font-semibold text-slate-300 mb-4 tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-list-ol text-brandOrange"></i> Frecuencia de Observaciones
+                    </h4>
+                    <div class="flex-1 relative">
+                        <canvas id="chartBarrasHorizontales"></canvas>
+                    </div>
+                </div>
+
+                <!-- CHART 3: RADAR (COMPARACIÓN POR CATEGORÍA) -->
+                <div class="glass-panel rounded-2xl p-6 flex flex-col h-[350px]">
+                    <h4 class="text-sm font-semibold text-slate-300 mb-4 tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-bullseye text-brandPurple"></i> Matriz de Cobertura
+                    </h4>
+                    <div class="flex-1 relative flex items-center justify-center">
+                        <canvas id="chartRadar"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- CHART 4: BARRAS (DISTRIBUCIÓN OBSERVACIONES GENERALES) -->
+                <div class="glass-panel rounded-2xl p-6 flex flex-col h-[350px]">
+                    <h4 class="text-sm font-semibold text-slate-300 mb-4 tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-chart-bar text-brandBlue"></i> Desglose de Registros con Observación
+                    </h4>
+                    <div class="flex-1 relative">
+                        <canvas id="chartBarrasObservaciones"></canvas>
+                    </div>
+                </div>
+
+                <!-- CHART 5: LÍNEA (EVOLUCIÓN ACUMULADA) -->
+                <div class="glass-panel rounded-2xl p-6 flex flex-col h-[350px]">
+                    <h4 class="text-sm font-semibold text-slate-300 mb-4 tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-brandCyan"></i> Curva Acumulativa de Procesamiento
+                    </h4>
+                    <div class="flex-1 relative">
+                        <canvas id="chartLineaEvolucion"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INTERACTIVE DATA TABLE -->
+            <div class="glass-panel rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-white tracking-wide">Visor de Datos de Postes</h3>
+                        <p class="text-xs text-slate-400">Búsqueda y estructuración avanzada en tiempo real</p>
+                    </div>
+                    
+                    <!-- Search & Export Tools -->
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <div class="relative w-full sm:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input type="text" id="tableSearch" placeholder="Buscar poste, dirección..." class="w-full pl-9 pr-4 py-2 text-sm bg-slate-800/80 border border-white/10 rounded-xl focus:outline-none focus:border-brandCyan text-slate-100 transition-colors" />
+                        </div>
+                        <button id="btnExportCSV" class="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-white/10 hover:border-brandEmerald/50 text-slate-200 hover:text-white text-sm font-medium rounded-xl transition-all shadow-sm shrink-0">
+                            <i class="fa-solid fa-file-csv text-brandEmerald text-base"></i>
+                            <span class="hidden md:inline">Exportar CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TABLE FRAME -->
+                <div class="overflow-x-auto border border-white/5 rounded-xl">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800/40 border-b border-white/10 text-xs font-semibold tracking-wider text-slate-300 uppercase">
+                                <th class="py-4 px-6 cursor-pointer hover:bg-slate-800/60 transition-colors" data-sort="poste">No. Poste <i class="fa-solid fa-sort ml-1 text-slate-500"></i></th>
+                                <th class="py-4 px-6 cursor-pointer hover:bg-slate-800/60 transition-colors" data-sort="direccion">Dirección <i class="fa-solid fa-sort ml-1 text-slate-500"></i></th>
+                                <th class="py-4 px-6 cursor-pointer hover:bg-slate-800/60 transition-colors" data-sort="coordenadas">Coordenadas <i class="fa-solid fa-sort ml-1 text-slate-500"></i></th>
+                                <th class="py-4 px-6 cursor-pointer hover:bg-slate-800/60 transition-colors" data-sort="avance">Avance <i class="fa-solid fa-sort ml-1 text-slate-500"></i></th>
+                                <th class="py-4 px-6 cursor-pointer hover:bg-slate-800/60 transition-colors" data-sort="analitico">Analítico <i class="fa-solid fa-sort ml-1 text-slate-500"></i></th>
+                                <th class="py-4 px-6">Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-white/5 text-sm text-slate-300">
+                            <!-- Rows loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- PAGINATION BAR -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                    <div class="text-xs text-slate-400" id="tableMetaInfo">
+                        Mostrando 0 registros de un total de 0
+                    </div>
+                    <div class="flex items-center gap-1" id="tablePagination">
+                        <!-- Buttons injected dynamic -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- JS CODE -->
+    <script>
+        // Store for global execution variables, encapsulated safely
+        const state = {
+            rawDataset: [],
+            processedData: [],
+            map: null,
+            mapMarkers: [],
+            charts: {},
+            table: {
+                searchQuery: '',
+                sortColumn: 'poste',
+                sortDirection: 'asc',
+                currentPage: 1,
+                itemsPerPage: 10
+            }
+        };
+
+        // UI Selectors
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileNameDisp = document.getElementById('fileName');
+        const placeholderState = document.getElementById('placeholderState');
+        const dashboardContent = document.getElementById('dashboardContent');
+        const tableBody = document.getElementById('tableBody');
+        const tableSearch = document.getElementById('tableSearch');
+        const tableMetaInfo = document.getElementById('tableMetaInfo');
+        const tablePagination = document.getElementById('tablePagination');
+        const btnExportCSV = document.getElementById('btnExportCSV');
+
+        // Color palette configurations for charts
+        const chartPalettes = {
+            vibrant: ['#2563EB', '#06B6D4', '#10B981', '#8B5CF6', '#F97316', '#FACC15', '#EF4444'],
+            progress: ['#10B981', '#F97316', '#2563EB', '#8B5CF6'],
+            translucent: [
+                'rgba(37, 99, 235, 0.7)',
+                'rgba(6, 182, 212, 0.7)',
+                'rgba(16, 185, 129, 0.7)',
+                'rgba(139, 92, 246, 0.7)',
+                'rgba(249, 115, 22, 0.7)'
+            ]
+        };
+
+        // Listeners
+        fileInput.addEventListener('change', handleFileSelected);
+        tableSearch.addEventListener('input', (e) => {
+            state.table.searchQuery = e.target.value.toLowerCase();
+            state.table.currentPage = 1;
+            renderTable();
+        });
+        btnExportCSV.addEventListener('click', exportTableToCSV);
+
+        // Sorting configuration
+        document.querySelectorAll('thead th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const column = th.getAttribute('data-sort');
+                if (state.table.sortColumn === column) {
+                    state.table.sortDirection = state.table.sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    state.table.sortColumn = column;
+                    state.table.sortDirection = 'asc';
+                }
+                
+                // Reset headers icon
+                document.querySelectorAll('thead th i').forEach(icon => {
+                    icon.className = "fa-solid fa-sort ml-1 text-slate-500";
+                });
+                const icon = th.querySelector('i');
+                icon.className = state.table.sortDirection === 'asc' ? "fa-solid fa-sort-up ml-1 text-brandCyan" : "fa-solid fa-sort-down ml-1 text-brandCyan";
+
+                renderTable();
+            });
+        });
+
+        // 1. READ EXCEL & PROCESSING
+        function handleFileSelected(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Show Loader State / Reset Info
+            fileNameDisp.textContent = file.name;
+            fileInfo.classList.remove('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = evt.target.result;
+                    let workbook;
+                    let records = [];
+
+                    if (file.name.endsWith('.csv')) {
+                        const csvText = evt.target.result;
+                        workbook = XLSX.read(csvText, { type: 'string' });
+                    } else {
+                        const dataUint = new Uint8Array(data);
+                        workbook = XLSX.read(dataUint, { type: 'array' });
+                    }
+
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    records = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (records.length === 0) {
+                        throw new Error("El archivo está vacío o no tiene un formato tabular legible.");
+                    }
+
+                    processAndLoadDataset(records);
+
+                } catch (err) {
+                    alert(`Error al analizar el archivo: ${err.message}. Asegúrese de subir un documento Excel/CSV válido.`);
+                    console.error(err);
+                }
+            };
+
+            if (file.name.endsWith('.csv')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function processAndLoadDataset(rawData) {
+            // Mapping keys automatically solving casing/spaces issues
+            const sample = rawData[0] || {};
+            const keys = Object.keys(sample);
+
+            const mapCol = (aliases) => {
+                const matched = keys.find(k => {
+                    const norm = k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                    return aliases.some(alias => norm.includes(alias));
+                });
+                return matched || null;
+            };
+
+            const cols = {
+                direccion: mapCol(['direccion', 'dir', 'calle', 'ubicacion']),
+                poste: mapCol(['poste', 'numero de poste', 'id', 'codigo', 'num_poste']),
+                coordenadas: mapCol(['coordenada', 'coord', 'lat', 'lon', 'geolocalizacion', 'ubica']),
+                observaciones: mapCol(['observa', 'obs', 'comentario', 'detalle', 'alerta']),
+                avance: mapCol(['avance', 'porcentaje', 'pct', 'status', 'estado', 'progreso']),
+                analitico: mapCol(['analitico', 'analisis', 'procesar', 'prioridad', 'high'])
+            };
+
+            // Parse and format clean records dataset
+            state.rawDataset = rawData;
+            state.processedData = rawData.map((row, index) => {
+                // Parse coordinates
+                let coordsRaw = row[cols.coordenadas] || "";
+                let lat = null, lng = null;
+                if (coordsRaw) {
+                    const cleanCoords = String(coordsRaw).replace(/[\[\]\(\)]/g, '').split(',');
+                    if (cleanCoords.length >= 2) {
+                        lat = parseFloat(cleanCoords[0].trim());
+                        lng = parseFloat(cleanCoords[1].trim());
+                    }
+                }
+
+                // Parse Avance Pct
+                let avanceRaw = row[cols.avance];
+                let avancePct = 0;
+                if (typeof avanceRaw === 'number') {
+                    // Si viene en formato porcentaje real (ej. 0.85) lo multiplicamos por 100
+                    avancePct = avanceRaw <= 1 ? Math.round(avanceRaw * 100) : Math.round(avanceRaw);
+                } else if (avanceRaw) {
+                    avancePct = parseInt(String(avanceRaw).replace(/[^0-9]/g, '')) || 0;
+                }
+
+                // Parse Analitico
+                let analiticoRaw = row[cols.analitico];
+                let isAnalitico = false;
+                if (analiticoRaw) {
+                    const normVal = String(analiticoRaw).trim().toLowerCase();
+                    isAnalitico = (normVal === 'si' || normVal === 'sí' || normVal === 'yes' || normVal === 'true' || normVal === '1' || normVal === 'analitico');
+                }
+
+                // Parse Observaciones
+                let obsRaw = row[cols.observaciones] || "";
+
+                return {
+                    id: index + 1,
+                    poste: row[cols.poste] || `Poste-${index + 1}`,
+                    direccion: row[cols.direccion] || 'No registrada',
+                    coordenadas: coordsRaw ? `${lat || ''}, ${lng || ''}` : 'Sin georreferencia',
+                    lat: isNaN(lat) ? null : lat,
+                    lng: isNaN(lng) ? null : lng,
+                    avance: avancePct > 100 ? 100 : avancePct,
+                    analitico: isAnalitico,
+                    observaciones: obsRaw,
+                    isCritica: obsRaw.toLowerCase().includes('critica') || obsRaw.toLowerCase().includes('falla') || obsRaw.toLowerCase().includes('roto') || obsRaw.toLowerCase().includes('danado')
+                };
+            });
+
+            // Transition states UI
+            placeholderState.classList.add('hidden');
+            dashboardContent.classList.remove('hidden');
+
+            // Render Dashboard Sections
+            renderKPIs();
+            renderMap();
+            renderCharts();
+            renderTable();
+        }
+
+        // 2. GENERATE AND POPULATE KPIs
+        function renderKPIs() {
+            const data = state.processedData;
+            const total = data.length;
+
+            // Totals & Avances
+            const totalAvance = data.reduce((sum, item) => sum + item.avance, 0);
+            const pctPromedio = total > 0 ? Math.round(totalAvance / total) : 0;
+            const completados = data.filter(item => item.avance === 100).length;
+            const pendientes = total - completados;
+
+            // Analiticos
+            const analiticos = data.filter(item => item.analitico);
+            const pctAnaliticos = total > 0 ? Math.round((analiticos.length / total) * 100) : 0;
+
+            // Observaciones
+            const conObs = data.filter(item => item.observaciones && item.observaciones.trim() !== "");
+            const criticas = data.filter(item => item.isCritica).length;
+            const obsPendientes = conObs.length - criticas;
+
+            // Injections
+            document.getElementById('kpiTotalPostes').textContent = total.toLocaleString();
+            
+            document.getElementById('kpiAvancePct').textContent = `${pctPromedio}%`;
+            document.getElementById('kpiCompletados').textContent = `${completados} Completos`;
+            document.getElementById('kpiPendientes').textContent = `${pendientes} Pendientes`;
+
+            document.getElementById('kpiAnaliticosCount').textContent = analiticos.length.toLocaleString();
+            document.getElementById('kpiAnaliticosPct').textContent = `${pctAnaliticos}% de la Infraestructura`;
+
+            document.getElementById('kpiObservacionesCount').textContent = conObs.length.toLocaleString();
+            document.getElementById('kpiCriticas').textContent = `${criticas} Críticas`;
+            document.getElementById('kpiObsPendientes').textContent = `${obsPendientes} Pendientes`;
+        }
+
+        // 3. MAP RENDERING (Leaflet.js)
+        function renderMap() {
+            // Clean older map reference to reinitialize
+            if (state.map) {
+                state.map.remove();
+                state.map = null;
+            }
+
+            const validCoords = state.processedData.filter(item => item.lat !== null && item.lng !== null);
+
+            // Default center if no coordinates
+            let center = [19.4326, -99.1332]; // Ciudad de México por defecto
+            let zoom = 12;
+
+            if (validCoords.length > 0) {
+                center = [validCoords[0].lat, validCoords[0].lng];
+                zoom = 14;
+            }
+
+            state.map = L.map('map').setView(center, zoom);
+
+            // Layer Dark Map Tile
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(state.map);
+
+            // Create customized Marker Icons
+            const customIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color: #06B6D4; width: 12px; height: 12px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 8px #06B6D4;"></div>`,
+                iconSize: [12, 12],
+                iconAnchor: [6, 6]
+            });
+
+            const criticalIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color: #EF4444; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px #EF4444; animation: ping 1s infinite;"></div>`,
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
+            });
+
+            const analiticoIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color: #8B5CF6; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px #8B5CF6;"></div>`,
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
+            });
+
+            // Put Markers on Map
+            const bounds = [];
+            validCoords.forEach(item => {
+                let iconToUse = customIcon;
+                if (item.analitico) iconToUse = analiticoIcon;
+                if (item.isCritica) iconToUse = criticalIcon;
+
+                const marker = L.marker([item.lat, item.lng], { icon: iconToUse }).addTo(state.map);
+                
+                const popupContent = `
+                    <div class="text-slate-900 font-sans p-1">
+                        <h4 class="font-bold text-sm text-brandBlue mb-1">Poste No: ${item.poste}</h4>
+                        <p class="text-xs text-slate-600 mb-1"><b>Ubicación:</b> ${item.direccion}</p>
+                        <p class="text-xs text-slate-600 mb-1"><b>Avance:</b> ${item.avance}%</p>
+                        ${item.analitico ? `<span class="inline-block px-1.5 py-0.5 mt-1 text-[10px] bg-purple-100 text-purple-700 font-semibold rounded">Analítico</span>` : ''}
+                        ${item.observaciones ? `<p class="text-xs text-brandOrange mt-1"><b>Observación:</b> ${item.observaciones}</p>` : ''}
+                    </div>
+                `;
+                marker.bindPopup(popupContent);
+                state.mapMarkers.push(marker);
+                bounds.push([item.lat, item.lng]);
+            });
+
+            // Adjust Zoom to bounds safely
+            if (bounds.length > 1) {
+                state.map.fitBounds(bounds, { padding: [40, 40] });
+            }
+        }
+
+        // 4. CHART RENDERING (Chart.js)
+        function renderCharts() {
+            // Destroy all existing charts
+            Object.keys(state.charts).forEach(key => {
+                if (state.charts[key]) {
+                    state.charts[key].destroy();
+                }
+            });
+            state.charts = {};
+
+            const dataset = state.processedData;
+
+            // Preparation data for Chart 1: Dona Avances
+            const range0_30 = dataset.filter(x => x.avance <= 30).length;
+            const range31_70 = dataset.filter(x => x.avance > 30 && x.avance <= 70).length;
+            const range71_99 = dataset.filter(x => x.avance > 70 && x.avance < 100).length;
+            const range100 = dataset.filter(x => x.avance === 100).length;
+
+            state.charts.donaAvance = new Chart(document.getElementById('chartDonaAvance').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Inicial (0-30%)', 'En Curso (31-70%)', 'Próximo (71-99%)', 'Completado (100%)'],
+                    datasets: [{
+                        data: [range0_30, range31_70, range71_99, range100],
+                        backgroundColor: [chartPalettes.vibrant[4], chartPalettes.vibrant[1], chartPalettes.vibrant[0], chartPalettes.vibrant[2]],
+                        borderWidth: 1,
+                        borderColor: 'rgba(255,255,255,0.05)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94A3B8', boxWidth: 12 } }
+                    }
+                }
+            });
+
+            // Prep data for Chart 2: Barras Horizontales Top Observaciones
+            const obsMap = {};
+            dataset.forEach(item => {
+                if (item.observaciones && item.observaciones.trim() !== "") {
+                    const cleanedObs = item.observaciones.split('.')[0].trim(); // Take main text sentence
+                    obsMap[cleanedObs] = (obsMap[cleanedObs] || 0) + 1;
+                }
+            });
+            const topObs = Object.entries(obsMap)
+                .sort((a,b) => b[1] - a[1])
+                .slice(0, 5);
+
+            state.charts.barrasHoriz = new Chart(document.getElementById('chartBarrasHorizontales').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: topObs.map(x => x[0]),
+                    datasets: [{
+                        label: 'Frecuencia',
+                        data: topObs.map(x => x[1]),
+                        backgroundColor: 'rgba(249, 115, 22, 0.75)',
+                        borderColor: '#F97316',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } },
+                        y: { grid: { display: false }, ticks: { color: '#94A3B8' } }
+                    }
+                }
+            });
+
+            // Prep data for Chart 3: Radar
+            // Metricas relativas por categorias claves: Avance, Analitico, Observación, Criticidad, Geolocalizado
+            const total = dataset.length || 1;
+            const geoPct = (dataset.filter(x => x.lat).length / total) * 100;
+            const analiticosPct = (dataset.filter(x => x.analitico).length / total) * 100;
+            const obsPct = (dataset.filter(x => x.observaciones !== "").length / total) * 100;
+            const criticoPct = (dataset.filter(x => x.isCritica).length / total) * 100;
+            const compPct = (dataset.filter(x => x.avance === 100).length / total) * 100;
+
+            state.charts.radar = new Chart(document.getElementById('chartRadar').getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: ['Georreferenciación', 'Analíticos', 'Observaciones', 'Críticos', 'Terminados'],
+                    datasets: [{
+                        label: 'Despliegue %',
+                        data: [geoPct, analiticosPct, obsPct, criticoPct, compPct],
+                        backgroundColor: 'rgba(139, 92, 246, 0.25)',
+                        borderColor: '#8B5CF6',
+                        pointBackgroundColor: '#8B5CF6',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        r: {
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { color: '#94A3B8', font: { size: 10 } },
+                            ticks: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // Prep data for Chart 4: Barras (Distribución de Observaciones en escala de avance)
+            const obsPorRangos = [0, 0, 0, 0];
+            dataset.forEach(item => {
+                if (item.observaciones) {
+                    if (item.avance <= 30) obsPorRangos[0]++;
+                    else if (item.avance <= 70) obsPorRangos[1]++;
+                    else if (item.avance < 100) obsPorRangos[2]++;
+                    else obsPorRangos[3]++;
+                }
+            });
+
+            state.charts.barrasObs = new Chart(document.getElementById('chartBarrasObservaciones').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['0-30% Avance', '31-70% Avance', '71-99% Avance', '100% Avance'],
+                    datasets: [{
+                        label: 'Postes con Alertas',
+                        data: obsPorRangos,
+                        backgroundColor: 'rgba(37, 99, 235, 0.8)',
+                        borderColor: '#2563EB',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#94A3B8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } }
+                    }
+                }
+            });
+
+            // Prep data for Chart 5: Curva Acumulativa Procesada
+            // Dividiremos la muestra linealmente para simular el avance de carga de trabajo
+            let acum = 0;
+            const evolData = dataset.map((item, idx) => {
+                acum += item.avance;
+                return { x: idx + 1, y: Math.round(acum / (idx + 1)) };
+            });
+
+            // Reducir la escala si el conjunto de datos es masivo
+            const sampleStep = Math.max(1, Math.round(evolData.length / 20));
+            const sampledEvol = evolData.filter((_, idx) => idx % sampleStep === 0);
+
+            state.charts.lineaEvol = new Chart(document.getElementById('chartLineaEvolucion').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: sampledEvol.map(pt => `Reg. ${pt.x}`),
+                    datasets: [{
+                        label: 'Promedio Eficiencia Acumulada',
+                        data: sampledEvol.map(pt => pt.y),
+                        fill: true,
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        borderColor: '#06B6D4',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#06B6D4'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#94A3B8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8', max: 100 } }
+                    }
+                }
+            });
+        }
+
+        // 5. INTERACTIVE TABLE
+        function renderTable() {
+            // Apply Filters (Search query)
+            let filtered = state.processedData.filter(item => {
+                const search = state.table.searchQuery;
+                return (
+                    String(item.poste).toLowerCase().includes(search) ||
+                    String(item.direccion).toLowerCase().includes(search) ||
+                    String(item.observaciones).toLowerCase().includes(search)
+                );
+            });
+
+            // Apply Sorting
+            const col = state.table.sortColumn;
+            const dir = state.table.sortDirection === 'asc' ? 1 : -1;
+
+            filtered.sort((a, b) => {
+                let valA = a[col];
+                let valB = b[col];
+
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                if (valA < valB) return -1 * dir;
+                if (valA > valB) return 1 * dir;
+                return 0;
+            });
+
+            // Pagination execution
+            const totalItems = filtered.length;
+            const totalPages = Math.ceil(totalItems / state.table.itemsPerPage) || 1;
+            
+            if (state.table.currentPage > totalPages) {
+                state.table.currentPage = totalPages;
+            }
+
+            const startIdx = (state.table.currentPage - 1) * state.table.itemsPerPage;
+            const paginatedItems = filtered.slice(startIdx, startIdx + state.table.itemsPerPage);
+
+            // Print table meta data
+            tableMetaInfo.textContent = `Mostrando registros del ${totalItems > 0 ? startIdx + 1 : 0} al ${Math.min(startIdx + state.table.itemsPerPage, totalItems)} de un total de ${totalItems}`;
+
+            // Render Rows
+            tableBody.innerHTML = '';
+            if (paginatedItems.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-slate-500">
+                            No se encontraron registros que coincidan con la búsqueda.
+                        </td>
+                    </tr>
+                `;
+            } else {
+                paginatedItems.forEach(item => {
+                    // Badge Avance class selector
+                    let pctBadgeClass = "bg-red-500/10 text-red-400 border border-red-500/20";
+                    if (item.avance > 30 && item.avance <= 70) pctBadgeClass = "bg-orange-500/10 text-orange-400 border border-orange-500/20";
+                    else if (item.avance > 70 && item.avance < 100) pctBadgeClass = "bg-blue-500/10 text-blue-400 border border-blue-500/20";
+                    else if (item.avance === 100) pctBadgeClass = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+
+                    // Analitico row and badge design
+                    const analiticoBadge = item.analitico 
+                        ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brandPurple/20 text-purple-300 border border-brandPurple/40 shadow-sm shadow-brandPurple/20 animate-pulse"><i class="fa-solid fa-bolt text-brandPurple"></i> Priority High</span>`
+                        : `<span class="text-slate-500 text-xs">No</span>`;
+
+                    const rowClass = item.analitico ? "bg-brandPurple/5 hover:bg-brandPurple/10 transition-colors" : "hover:bg-slate-800/30 transition-colors";
+
+                    tableBody.innerHTML += `
+                        <tr class="${rowClass}">
+                            <td class="py-4 px-6 font-semibold text-slate-200">${item.poste}</td>
+                            <td class="py-4 px-6 truncate max-w-xs" title="${item.direccion}">${item.direccion}</td>
+                            <td class="py-4 px-6 text-xs text-slate-400 font-mono">${item.coordenadas}</td>
+                            <td class="py-4 px-6">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 text-xs font-semibold rounded-md ${pctBadgeClass}">${item.avance}%</span>
+                                    <div class="w-16 bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                        <div class="bg-brandCyan h-full" style="width: ${item.avance}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-4 px-6">${analiticoBadge}</td>
+                            <td class="py-4 px-6">
+                                ${item.isCritica ? `<span class="text-brandCoral font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i>${item.observaciones}</span>` : `<span class="text-slate-400">${item.observaciones || '---'}</span>`}
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Render pagination buttons
+            renderPagination(totalPages);
+        }
+
+        function renderPagination(totalPages) {
+            tablePagination.innerHTML = '';
+
+            const btnClass = "w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition-all ";
+            const inactiveBtn = btnClass + "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white border border-white/5";
+            const activeBtn = btnClass + "bg-brandPurple text-white shadow-md shadow-brandPurple/30";
+
+            // Left arrow
+            const prevDisabled = state.table.currentPage === 1;
+            const prevButton = document.createElement('button');
+            prevButton.className = prevDisabled ? inactiveBtn + " opacity-40 cursor-not-allowed" : inactiveBtn;
+            prevButton.innerHTML = `<i class="fa-solid fa-chevron-left"></i>`;
+            if (!prevDisabled) {
+                prevButton.onclick = () => {
+                    state.table.currentPage--;
+                    renderTable();
+                };
+            }
+            tablePagination.appendChild(prevButton);
+
+            // Numbered buttons (Smart limit visualization window)
+            const rangeWindow = 3;
+            let start = Math.max(1, state.table.currentPage - 1);
+            let end = Math.min(totalPages, start + rangeWindow - 1);
+
+            if (end - start + 1 < rangeWindow) {
+                start = Math.max(1, end - rangeWindow + 1);
+            }
+
+            for (let i = start; i <= end; i++) {
+                const numButton = document.createElement('button');
+                numButton.className = i === state.table.currentPage ? activeBtn : inactiveBtn;
+                numButton.textContent = i;
+                numButton.onclick = () => {
+                    state.table.currentPage = i;
+                    renderTable();
+                };
+                tablePagination.appendChild(numButton);
+            }
+
+            // Right arrow
+            const nextDisabled = state.table.currentPage === totalPages;
+            const nextButton = document.createElement('button');
+            nextButton.className = nextDisabled ? inactiveBtn + " opacity-40 cursor-not-allowed" : inactiveBtn;
+            nextButton.innerHTML = `<i class="fa-solid fa-chevron-right"></i>`;
+            if (!nextDisabled) {
+                nextButton.onclick = () => {
+                    state.table.currentPage++;
+                    renderTable();
+                };
+            }
+            tablePagination.appendChild(nextButton);
+        }
+
+        // 6. EXPORTING DATA TO CSV
+        function exportTableToCSV() {
+            if (state.processedData.length === 0) return;
+
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            csvContent += "Numero de Poste,Direccion,Coordenadas,Avance,Analitico,Observaciones\n";
+
+            state.processedData.forEach(item => {
+                const row = [
+                    `"${String(item.poste).replace(/"/g, '""')}"`,
+                    `"${String(item.direccion).replace(/"/g, '""')}"`,
+                    `"${String(item.coordenadas).replace(/"/g, '""')}"`,
+                    `"${item.avance}%"`,
+                    `"${item.analitico ? 'SI' : 'NO'}"`,
+                    `"${String(item.observaciones).replace(/"/g, '""')}"`
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Reporte_Postes_Analitico_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
+
