@@ -340,15 +340,15 @@ header{background:rgba(15,23,42,.88);backdrop-filter:blur(24px);-webkit-backdrop
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   DATOS PRECARGADOS  –  Programa de Proyecto.xlsx (actualizado)
+   DATOS PRECARGADOS  –  Solo Hoja1 de Programa de Proyecto.xlsx
    ═══════════════════════════════════════════════════════════════ */
-const EMBEDDED_SHEETS = {"Hoja1": [[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["Alcaldia Magdalena Contreras C2", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.9365079365079365], [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["No", "Direccion de Postes", "COORDENADAS", null, "PROGRESO", "POSTE", null, null, "OBSERVACIONES", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "ANALITICOS", "Avance del Proyecto"], [1, "Aztecas 46, San Bernabé Ocotepec, Lomas de San Bernabé, La Magdalena Contreras, 10350 Ciudad de México, CDMX", "N 19° 19.026', W 099° 15.728'", null, 0.75, "0032", null, null, "PTZ fuera HV", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [2, "Progreso 21, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.3002518, -99.241366", null, 1, "0016", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [3, "Luis Echeverría Álvarez MZ37LT14, La Malinche, La Magdalena Contreras, 10320 Ciudad de México, CDMX", "19.3249086, -99.2468062", null, 0.75, "0045", null, null, "camara bala dañada", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [4, "C. Oyametla 18, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.3210375, -99.25888649999999", null, 1, "0038", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [5, "Lomas Tarumba 12, El Ocotal, La Magdalena Contreras, 10630 Ciudad de México, CDMX", "N 19° 17.855', W 099° 15.723'", null, 0.75, "0044", null, null, "Reconfigurar ptz", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [6, "Las Flores 25, Rincón de Tlacuilotitla, El Ermitaño, La Magdalena Contreras, 10660 Ciudad de México, CDMX", "19.2988979, -99.2643843", null, 1, "0043", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [7, "Ahuatla 31, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "19.3209331, -99.2573513", null, 1, "0029", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [8, "Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "19.3174732, -99.256436", null, 1, "0027", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [9, "Galeana, Los Padres, Las Cruces, La Magdalena Contreras, 10340 Ciudad de México, CDMX", "N 19° 19.096', W 099° 15.003'", null, 1, "0034", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [10, "Av Hidalgo 110, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "19.324682, -99.2562896", null, 0.75, "0028", null, null, "Reconfigurar ptz", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [11, "General Vertiz, , San Nicolás Totolapan, Ciudad de México, 10900", "19.2975346, -99.2466657", null, 1, "0013", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [12, "Gral. Vertiz 12-14, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "N 19° 17.561', W 099° 14.848'", null, 1, "0021", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [13, "Ex-Hacienda de Eslava 4, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "19.284239, -99.24303689999999", null, 0, "0022", null, null, "vandalizada", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [14, "Ex-Hacienda de Eslava 22, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "19.2834691, -99.2423089", null, 1, "0023", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [15, "C. Oyametla 11, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.3150414, -99.26104459999999", null, 1, "0040", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [16, "C. Sebastián Lerdo de Tejada, Barrio San Francisco, La Magdalena Contreras, 10500 Ciudad de México, CDMX", "19.3075472, -99.2401527", null, 1, "0006", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [17, "C. Magdalena, La Magdalena, La Magdalena Contreras, 10910 Ciudad de México, CDMX", "N 19° 18.169', W 099° 14.723'", null, 1, "00.10", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [18, "Emilio Carranza 118-108, La Magdalena, La Magdalena Contreras, 10910 Ciudad de México, CDMX", "N 19° 18.237', W 099° 14.480'", null, 1, "0005", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [19, "Tinaco 20, La Concepción, San Nicolás Totolapan, La Magdalena Contreras, 10830 De San Nicolás Totolapan, CDMX", "N 19° 18.225', W 099° 14.261'", null, 1, "0007", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [20, "Felipe Angeles 639, La Guadalupe, La Magdalena Contreras, 10820 Ciudad de México, CDMX", "N 19° 18.362', W 099° 14.025'", null, 1, "0003", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [21, "Emiliano Zapata 135, La Guadalupe, La Magdalena Contreras, 10820 Ciudad de México, CDMX", "19.306884245435903, -99.2320187", null, 1, "0004", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [22, "Pachuca 13-17, Santa Teresa, Sta Teresa, La Magdalena Contreras, 10710 Ciudad de México, CDMX", "19.3095473, -99.22848420000001", null, 1, "0002", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [23, "C. Durango 1-15, Héroes de Padierna, La Magdalena Contreras, Ciudad de México, CDMX", "19.3112164, -99.22945999999999", null, 1, "0001", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [24, "Durazno 16, La Malinche, La Magdalena Contreras, 10010 Ciudad de México, CDMX", "19.3235673, -99.2396201", null, 1, "0026", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [25, "Violeta 746, El Toro, La Magdalena Contreras, 10610 Ciudad de México, CDMX", "N 19° 18.705', W 099° 14.602'", null, 1, "0009", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [26, "Av. 1113BIS, 10900 De, C. Buenavista, San Nicolás Totolapan, CDMX", "N 19° 17.715', W 099° 15.208'", null, 1, "0015", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [27, "Calle And. Cañada, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "N 19° 19.162', W 099° 15.157'", null, 1, "0031", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [28, "Puente de Cuadritos 18-b, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.2944345, -99.240336", null, 1, "0020", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [29, "2a. Cda. Fresnillo 3A, Palmas, La Magdalena Contreras, 10370 Ciudad de México, CDMX", "19.3142713, -99.2512196", null, 1, "0024", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [30, "Poloni, Atacaxco, La Magdalena Contreras, 10378 Ciudad de México, CDMX", "19.3156478, -99.2515452", null, 1, "0037", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [31, "Popocani, Palmas, Atacaxco, La Magdalena Contreras, 10378 Ciudad de México, CDMX", "19.314867, -99.2498995", null, 1, "0036", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [32, "San Nicolás Totolapan, La Magdalena Contreras, 10643 Ciudad de México, CDMX", "19.2943431, -99.2550552", null, 1, "0017", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [33, "Emiliano Zapata 14-12, Barros Sierra, La Magdalena Contreras, 10380 Ciudad de México, CDMX", "19.3167503, -99.2441762", null, 0.75, "0025", null, null, "bala dañada", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [34, "San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.28758, -99.24139", null, 1, "0018", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [35, "Ahuatla, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "19.323165, -99.2559637", null, 1, "0030", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [36, "Fresno, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.3135655, -99.2562043", null, 1, "0041", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [37, "Emiliano Zapata 4, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.313428062313644, -99.2561031", null, 1, "0035", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [38, "C. Sebastián Lerdo de Tejada 9-39, Barrio San Francisco, La Magdalena Contreras, 10500 Ciudad de México, CDMX", "19.30875974803249, -99.23767400188699", null, 1, "0011", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [39, "Av. de las Torres, Los Padres, La Magdalena Contreras, 10340 Ciudad de México, CDMX", "19.321529608064672, -99.2472528569997", null, 1, "0039", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [40, "Río Papaloapan 3, Ampliación Lomas de San Bernabé, Amp. Lomas de San Bernabé, La Magdalena Contreras, 10369 Ciudad de México, CDMX", "19.307060334466797, -99.26964234822262", null, 1, "0033", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [41, "C. Primera de Subestación 24, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.29226595734104, -99.24440921613524", null, 1, "0019", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [42, "Emiliano Zapata 34-10, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.312844851523906, -99.25528241929828", null, 1, "0042", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [43, "Cjon. de Soledad 27-119, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "N 19° 17.822', W 099° 14.667'", null, 1, "0014", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [44, "cipreses esquina pino, la cruz", "19.306867311114846, -99.23572871975654", null, 0, "0047", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [45, "Av. Álvaro Obregón 384, La Cruz, La Magdalena Contreras, 10800 Ciudad de México, CDMX", "N 19° 18.326', W 099° 14.098'", null, 1, "0008", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [46, "Subida a San Bernabé 30-544, El Rosal, La Magdalena Contreras, 10600 Ciudad de México, CDMX", "19.308489642158403, -99.25035216051731", null, 1, "0060", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [47, "Pipico 11-39, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "N 19° 18.115', W 099° 14.473'", null, 1, "0062", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [48, "Coconetla, El Ocotal, La Magdalena Contreras, Ciudad de México, CDMX", "N 19° 18.301', W 099° 15.516'", null, 1, "0058", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [49, "Río San Juan 28, Ampliación Lomas de San Bernabé, Amp. Lomas de San Bernabé, La Magdalena Contreras, 10369 Ciudad de México, CDMX", "19.308017679809343, -99.26834813825927", null, 1, "0046", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [50, "Av. Carbonera, La Carbonera, La Magdalena Contreras, 10640 Ciudad de México, CDMX", "19.299549197326197, -99.25725852995735", null, 1, "0059", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [51, "Atlapizin 18-19, Lomas de San Bernabé, La Magdalena Contreras, 10350 Ciudad de México, CDMX", "19.30842132007045, -99.26606977392387", null, 1, "0056", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [52, "And. 12, Tierra Unida, La Magdalena Contreras, 10369 Ciudad de México, CDMX", "19.3031645782583, -99.26852018586595", null, 1, "0051", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [53, "C. Ermitaño, El Ermitaño, La Magdalena Contreras, 10660 Ciudad de México, CDMX", "19.302807630939213, -99.26668072860353", null, 0.5, "0061", null, null, "bala fuera reconfigurar ptz", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [54, "Río Eslava 6, La Concepción, La Magdalena Contreras, 10830 Ciudad de México, CDMX", "N 19° 18.176', W 099° 14.239'", null, 1, "0057", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [55, "Calle Emiliano Zapata 71, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.28606269446364, -99.24517038224272", null, 1, "0049", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [56, "F.C. de Cuernavaca 3-85, La Cruz, La Magdalena Contreras, 10800 Ciudad de México, CDMX", "19.306006285091694, -99.23553423537086", null, 1, "0050", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [57, "Benito Juárez 32-20, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.298425739701667, -99.24443850766271", null, 1, "0012", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [58, "Benito Juárez 34-247, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.297955503002473, -99.24387596080084", null, 1, "0052", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [59, "Vía Chiquita 489, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "19.28573827682753, -99.24235055467163", null, 1, "0063", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [60, "Ferrocarril de Cuernavaca 69-68, Las Huertas, La Magdalena Contreras, 10920 Ciudad de México, CDMX", "19.295323254820357, -99.23653024559847", null, 0.75, "0048", null, null, "bala dañada", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [61, "C. de Escolta 13, Independencia San Ramón, San Jerónimo Lídice, La Magdalena Contreras, 10200 Ciudad de México, CDMX", "19.332996497476927, -99.2194832911678", null, 1, "0054", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [62, "Pajarera, Independencia Batan Sur, La Magdalena Contreras, 10200 Ciudad de México, CDMX", "19.33184891510574, -99.21131412940278", null, 1, "0053", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [63, "C. de Escolta, Independencia San Ramón, San Jerónimo Lídice, La Magdalena Contreras, 10100 Ciudad de México, CDMX", "19.33042002396763, -99.21956255046915", null, 1, "0055", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]], "Hoja 2": [[null, null, null, null], [null, null, null, null], [null, null, null, null], [null, null, null, null], [null, null, null, null], [null, null, null, "PROYECTO"], ["No", "TAREA", "R", "PROGRESO"], [1, "En el sitio del C2", null, null], [1.1, "Racks", null, 1], [1.2000000000000002, "UPS ", null, 1], [1.3000000000000003, "Videowall ", null, 1], [1.4, "Estaciones de trabajo", null, 1], [1.5, "Matriz de videowall", null, 1], [1.6, "Monitores de estaciones de trabajo", null, 1], [1.7000000000000002, "Joysticks para control PTZ", null, 1], [1.8000000000000003, "Servidores de almacenamiento", null, 1], [1.9000000000000004, "Servicio de internet dedicado", null, 0.8], ["1.1.1", "Conectividad para 600 cámaras base instalada", null, 0.8], ["1.1.2", "Switches ", null, 1], [2, "Infraestructura Exterior Postes", null, null], [2.1, "Durango", 1, 1], [2.2, "Andador teocali", 2, 1], [2.3000000000000003, "Felipe angeles", 3, 1], [2.4000000000000004, "Francisco villa", 4, 1], [2.5000000000000004, "Hilda", 5, 1], [2.6000000000000005, "Aztecas BS", 6, 1], [2.7000000000000006, "Tinaco", 7, 1], [2.8000000000000007, "Pollitos", 8, 1], [2.900000000000001, "Violeta", 9, 1], ["2.1.1", "Canal", 10, 1], ["2.1.2", "Lerdo", 11, 1], ["2.1.3", "Buena vista ", 12, 1], ["2.1.4", "General vertiz", 13, 1], ["2.1.5", "Recreo de niño", 14, 0.75], ["2.1.6", "Prolongacion buena vista cc", 15, 0.75], ["2.1.7", "Progreso", 16, 0.75], ["2.1.8", "Buena vista", 17, 0.75], ["2.1.9", "Sub estacion 1", 18, 1], ["2.1.10", "Subestacion campo 1", 19, 1], ["2.1.11", "Puente de cuadritos ", 20, 0.75], ["2.1.12", "Del rincon ", 21, 0.75], ["2.1.13", "Ixtlahualtongo", 22, 0.5], ["2.1.14", "Ojo de agua", 23, 1], ["2.1.15", "Palmeran", 24, 0.75], ["2.1.16", "Emiliano Zapata  ", 25, 0.75], ["2.1.17", "Durazno", 26, 1], ["2.1.18", "Las cruces", 27, 1], ["2.1.19", "Buena vista General Vertiz", 28, 0.75], ["2.1.20", "Aguatla", 29, 0.75], ["2.1.21", "Andador aguatla ", 30, 0.75], ["2.1.22", "Circuito Cantera", 31, 1], ["2.1.23", "Aztecas 46", 32, 0.75], ["2.1.24", "Rio papaloapan", 33, 0.75], ["2.1.25", "Fernado Leal ", 34, 0.75], ["2.1.26", "Emiliano Zapata Xicotencatl", 35, 1], ["2.1.27", "Olac", 36, 0.75], ["2.1.28", "Popocani", 37, 0.75], ["2.1.29", "Oyametla", 38, 0.75], ["2.1.30", "Las torres", 39, 1], ["2.1.31", "Xosco", 40, 0.75], ["2.1.32", "Fresno", 41, 0.75], ["2.1.33", "Privada Emiliano Zapata", 42, 0.75], ["2.1.34", "Manantial", 43, 0.75], ["2.1.35", "Minas de Centeno", 44, 0.75], ["2.1.36", "Corona del Rosal", 45, 0.5], ["2.1.37", "Rio San Juan", 46, 1], ["2.1.38", "Las huertas", 48, 0.75], ["2.1.39", "Via chiquita ", 49, 0.75], ["2.1.40", "Ferrocarril de cuernavaca ", 50, 0.75], ["2.1.41", "Andador 6", 51, 0.75], ["2.1.42", "Benito juarez Idependencia", 52, 0.75], ["2.1.43", "Caseta pajarera", 53, 0.75], ["2.1.44", "San bernabe", 54, 1], ["2.1.45", "Rio chico", 55, 1], ["2.1.46", "Carboneros", 56, 1], ["2.1.47", "Mitad de canal de puente", 57, 1], ["2.1.48", "Coconetla", 58, 1], ["2.1.49", "La carbonera", 59, 0.75], ["2.1.50", "Palmera de azucar", 60, 0.75], ["2.1.51", "Hermitaño", 61, 0.75], ["2.1.52", "Buena vista pipico", 62, 0.75], ["2.1.53", "Via chiquita encinal", 63, 1], [null, null, null, null], [3, "Instalacion de Analiticos", null, null], [3.1, "Corona del Rosal", "0045", null], [3.2, "Minas de Centeno", "0044", null], [3.3, "Buena vista General Vertiz", "0028", null], [3.4, "Ixtlahualtongo", "0022", null], [3.5, "Violeta", "0009", null], [3.6, "Puente de cuadritos ", "0020", null], [3.7, "Buena vista", "0017", null], [3.8, "Recreo de niño", "0014", null], [3.9, "Pollitos", "0008", null], ["3.1.1", "San bernabe", "0054", null]]};
+const EMBEDDED_SHEETS = {"Hoja1": [[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["Alcaldia Magdalena Contreras C2", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.9365079365079365], [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["No", "Direccion de Postes", "COORDENADAS", null, "PROGRESO", "POSTE", null, null, "OBSERVACIONES", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "ANALITICOS", "Avance del Proyecto"], [1, "Aztecas 46, San Bernabé Ocotepec, Lomas de San Bernabé, La Magdalena Contreras, 10350 Ciudad de México, CDMX", "N 19° 19.026', W 099° 15.728'", null, 0.75, "0032", null, null, "PTZ fuera HV", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [2, "Progreso 21, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.3002518, -99.241366", null, 1, "0016", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [3, "Luis Echeverría Álvarez MZ37LT14, La Malinche, La Magdalena Contreras, 10320 Ciudad de México, CDMX", "19.3249086, -99.2468062", null, 0.75, "0045", null, null, "camara bala dañada", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [4, "C. Oyametla 18, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.3210375, -99.25888649999999", null, 1, "0038", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [5, "Lomas Tarumba 12, El Ocotal, La Magdalena Contreras, 10630 Ciudad de México, CDMX", "N 19° 17.855', W 099° 15.723'", null, 0.75, "0044", null, null, "Reconfigurar ptz", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [6, "Las Flores 25, Rincón de Tlacuilotitla, El Ermitaño, La Magdalena Contreras, 10660 Ciudad de México, CDMX", "19.2988979, -99.2643843", null, 1, "0043", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [7, "Ahuatla 31, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "19.3209331, -99.2573513", null, 1, "0029", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [8, "Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "19.3174732, -99.256436", null, 1, "0027", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [9, "Galeana, Los Padres, Las Cruces, La Magdalena Contreras, 10340 Ciudad de México, CDMX", "N 19° 19.096', W 099° 15.003'", null, 1, "0034", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [10, "Av Hidalgo 110, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "19.324682, -99.2562896", null, 0.75, "0028", null, null, "Reconfigurar ptz", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [11, "General Vertiz, , San Nicolás Totolapan, Ciudad de México, 10900", "19.2975346, -99.2466657", null, 1, "0013", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [12, "Gral. Vertiz 12-14, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "N 19° 17.561', W 099° 14.848'", null, 1, "0021", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [13, "Ex-Hacienda de Eslava 4, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "19.284239, -99.24303689999999", null, 0, "0022", null, null, "vandalizada", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [14, "Ex-Hacienda de Eslava 22, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "19.2834691, -99.2423089", null, 1, "0023", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [15, "C. Oyametla 11, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.3150414, -99.26104459999999", null, 1, "0040", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [16, "C. Sebastián Lerdo de Tejada, Barrio San Francisco, La Magdalena Contreras, 10500 Ciudad de México, CDMX", "19.3075472, -99.2401527", null, 1, "0006", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [17, "C. Magdalena, La Magdalena, La Magdalena Contreras, 10910 Ciudad de México, CDMX", "N 19° 18.169', W 099° 14.723'", null, 1, "00.10", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [18, "Emilio Carranza 118-108, La Magdalena, La Magdalena Contreras, 10910 Ciudad de México, CDMX", "N 19° 18.237', W 099° 14.480'", null, 1, "0005", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [19, "Tinaco 20, La Concepción, San Nicolás Totolapan, La Magdalena Contreras, 10830 De San Nicolás Totolapan, CDMX", "N 19° 18.225', W 099° 14.261'", null, 1, "0007", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [20, "Felipe Angeles 639, La Guadalupe, La Magdalena Contreras, 10820 Ciudad de México, CDMX", "N 19° 18.362', W 099° 14.025'", null, 1, "0003", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [21, "Emiliano Zapata 135, La Guadalupe, La Magdalena Contreras, 10820 Ciudad de México, CDMX", "19.306884245435903, -99.2320187", null, 1, "0004", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [22, "Pachuca 13-17, Santa Teresa, Sta Teresa, La Magdalena Contreras, 10710 Ciudad de México, CDMX", "19.3095473, -99.22848420000001", null, 1, "0002", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [23, "C. Durango 1-15, Héroes de Padierna, La Magdalena Contreras, Ciudad de México, CDMX", "19.3112164, -99.22945999999999", null, 1, "0001", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [24, "Durazno 16, La Malinche, La Magdalena Contreras, 10010 Ciudad de México, CDMX", "19.3235673, -99.2396201", null, 1, "0026", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [25, "Violeta 746, El Toro, La Magdalena Contreras, 10610 Ciudad de México, CDMX", "N 19° 18.705', W 099° 14.602'", null, 1, "0009", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [26, "Av. 1113BIS, 10900 De, C. Buenavista, San Nicolás Totolapan, CDMX", "N 19° 17.715', W 099° 15.208'", null, 1, "0015", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [27, "Calle And. Cañada, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "N 19° 19.162', W 099° 15.157'", null, 1, "0031", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [28, "Puente de Cuadritos 18-b, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.2944345, -99.240336", null, 1, "0020", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [29, "2a. Cda. Fresnillo 3A, Palmas, La Magdalena Contreras, 10370 Ciudad de México, CDMX", "19.3142713, -99.2512196", null, 1, "0024", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [30, "Poloni, Atacaxco, La Magdalena Contreras, 10378 Ciudad de México, CDMX", "19.3156478, -99.2515452", null, 1, "0037", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [31, "Popocani, Palmas, Atacaxco, La Magdalena Contreras, 10378 Ciudad de México, CDMX", "19.314867, -99.2498995", null, 1, "0036", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [32, "San Nicolás Totolapan, La Magdalena Contreras, 10643 Ciudad de México, CDMX", "19.2943431, -99.2550552", null, 1, "0017", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [33, "Emiliano Zapata 14-12, Barros Sierra, La Magdalena Contreras, 10380 Ciudad de México, CDMX", "19.3167503, -99.2441762", null, 0.75, "0025", null, null, "bala dañada", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [34, "San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.28758, -99.24139", null, 1, "0018", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [35, "Ahuatla, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "19.323165, -99.2559637", null, 1, "0030", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [36, "Fresno, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.3135655, -99.2562043", null, 1, "0041", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [37, "Emiliano Zapata 4, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.313428062313644, -99.2561031", null, 1, "0035", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [38, "C. Sebastián Lerdo de Tejada 9-39, Barrio San Francisco, La Magdalena Contreras, 10500 Ciudad de México, CDMX", "19.30875974803249, -99.23767400188699", null, 1, "0011", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [39, "Av. de las Torres, Los Padres, La Magdalena Contreras, 10340 Ciudad de México, CDMX", "19.321529608064672, -99.2472528569997", null, 1, "0039", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [40, "Río Papaloapan 3, Ampliación Lomas de San Bernabé, Amp. Lomas de San Bernabé, La Magdalena Contreras, 10369 Ciudad de México, CDMX", "19.307060334466797, -99.26964234822262", null, 1, "0033", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [41, "C. Primera de Subestación 24, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.29226595734104, -99.24440921613524", null, 1, "0019", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [42, "Emiliano Zapata 34-10, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "19.312844851523906, -99.25528241929828", null, 1, "0042", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [43, "Cjon. de Soledad 27-119, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "N 19° 17.822', W 099° 14.667'", null, 1, "0014", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [44, "cipreses esquina pino, la cruz", "19.306867311114846, -99.23572871975654", null, 0, "0047", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [45, "Av. Álvaro Obregón 384, La Cruz, La Magdalena Contreras, 10800 Ciudad de México, CDMX", "N 19° 18.326', W 099° 14.098'", null, 1, "0008", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [46, "Subida a San Bernabé 30-544, El Rosal, La Magdalena Contreras, 10600 Ciudad de México, CDMX", "19.308489642158403, -99.25035216051731", null, 1, "0060", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [47, "Pipico 11-39, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "N 19° 18.115', W 099° 14.473'", null, 1, "0062", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [48, "Coconetla, El Ocotal, La Magdalena Contreras, Ciudad de México, CDMX", "N 19° 18.301', W 099° 15.516'", null, 1, "0058", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [49, "Río San Juan 28, Ampliación Lomas de San Bernabé, Amp. Lomas de San Bernabé, La Magdalena Contreras, 10369 Ciudad de México, CDMX", "19.308017679809343, -99.26834813825927", null, 1, "0046", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [50, "Av. Carbonera, La Carbonera, La Magdalena Contreras, 10640 Ciudad de México, CDMX", "19.299549197326197, -99.25725852995735", null, 1, "0059", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [51, "Atlapizin 18-19, Lomas de San Bernabé, La Magdalena Contreras, 10350 Ciudad de México, CDMX", "19.30842132007045, -99.26606977392387", null, 1, "0056", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [52, "And. 12, Tierra Unida, La Magdalena Contreras, 10369 Ciudad de México, CDMX", "19.3031645782583, -99.26852018586595", null, 1, "0051", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [53, "C. Ermitaño, El Ermitaño, La Magdalena Contreras, 10660 Ciudad de México, CDMX", "19.302807630939213, -99.26668072860353", null, 0.5, "0061", null, null, "bala fuera reconfigurar ptz", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [54, "Río Eslava 6, La Concepción, La Magdalena Contreras, 10830 Ciudad de México, CDMX", "N 19° 18.176', W 099° 14.239'", null, 1, "0057", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [55, "Calle Emiliano Zapata 71, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.28606269446364, -99.24517038224272", null, 1, "0049", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [56, "F.C. de Cuernavaca 3-85, La Cruz, La Magdalena Contreras, 10800 Ciudad de México, CDMX", "19.306006285091694, -99.23553423537086", null, 1, "0050", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [57, "Benito Juárez 32-20, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.298425739701667, -99.24443850766271", null, 1, "0012", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [58, "Benito Juárez 34-247, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "19.297955503002473, -99.24387596080084", null, 1, "0052", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [59, "Vía Chiquita 489, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "19.28573827682753, -99.24235055467163", null, 1, "0063", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [60, "Ferrocarril de Cuernavaca 69-68, Las Huertas, La Magdalena Contreras, 10920 Ciudad de México, CDMX", "19.295323254820357, -99.23653024559847", null, 0.75, "0048", null, null, "bala dañada", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [61, "C. de Escolta 13, Independencia San Ramón, San Jerónimo Lídice, La Magdalena Contreras, 10200 Ciudad de México, CDMX", "19.332996497476927, -99.2194832911678", null, 1, "0054", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Lectora de placas ", null], [62, "Pajarera, Independencia Batan Sur, La Magdalena Contreras, 10200 Ciudad de México, CDMX", "19.33184891510574, -99.21131412940278", null, 1, "0053", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [63, "C. de Escolta, Independencia San Ramón, San Jerónimo Lídice, La Magdalena Contreras, 10100 Ciudad de México, CDMX", "19.33042002396763, -99.21956255046915", null, 1, "0055", null, null, "Funciona correctamente ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]]};
 
 /* ═══════════════════════════════════════════════════════════════
-   STORAGE  –  clave única para el proyecto
+   STORAGE
    ═══════════════════════════════════════════════════════════════ */
-const STORE_KEY   = 'c2mc_records_v1';
-const META_KEY    = 'c2mc_meta_v1';
+const STORE_KEY   = 'c2mc_records_hoja1_v1';
+const META_KEY    = 'c2mc_meta_hoja1_v1';
 
 function loadDB(){
   try{const r=localStorage.getItem(STORE_KEY);return r?JSON.parse(r):[];}catch{return[];}
@@ -367,8 +367,8 @@ function saveMeta(m){
    GLOBAL STATE
    ═══════════════════════════════════════════════════════════════ */
 let charts={};
-let db=[];        // registros acumulados
-let meta={};      // stats de sesión
+let db=[];        
+let meta={};      
 
 /* ═══════════════════════════════════════════════════════════════
    HELPERS
@@ -402,12 +402,13 @@ const BUCKET_COLORS={'Completado':'#10B981','Avanzado':'#06B6D4','En proceso':'#
 const BUCKET_ORDER=['Completado','Avanzado','En proceso','Pendiente','Sin iniciar','Sin dato'];
 
 /* ═══════════════════════════════════════════════════════════════
-   PARSEO DE SHEETS
+   PARSEO DE SHEETS (Filtrado solo para Hoja1)
    ═══════════════════════════════════════════════════════════════ */
 function extractRecords(sheetsData){
   const records=[];let projectName=null;
-  Object.keys(sheetsData).forEach(sheetName=>{
-    const rows=sheetsData[sheetName];
+  // Solo interactúa si la llave es Hoja1
+  if(sheetsData["Hoja1"]){
+    const rows=sheetsData["Hoja1"];
     let headerRowIdx=-1,colMap={};
     for(let r=0;r<Math.min(rows.length,20);r++){
       const row=rows[r]||[];
@@ -426,36 +427,37 @@ function extractRecords(sheetsData){
         break;
       }
     }
-    if(headerRowIdx===-1)return;
-    if(!projectName){for(let r=0;r<headerRowIdx;r++){const v=rows[r]&&rows[r][0];if(v&&typeof v==='string'&&v.trim().length>3){projectName=v.trim();break;}}}
-    for(let r=headerRowIdx+1;r<rows.length;r++){
-      const row=rows[r]||[];
-      const poste=colMap.poste!==undefined?row[colMap.poste]:null;
-      const obs=colMap.obs!==undefined?row[colMap.obs]:null;
-      const coords=colMap.coords!==undefined?row[colMap.coords]:null;
-      const tarea=colMap.tarea!==undefined?row[colMap.tarea]:null;
-      const isEmpty=v=>v===null||v===undefined||String(v).trim()==='';
-      if(isEmpty(poste)&&isEmpty(obs)&&isEmpty(coords)&&isEmpty(tarea))continue;
-      let progreso=null;
-      if(colMap.progreso!==undefined){let v=row[colMap.progreso];if(v!==null&&v!==undefined&&v!==''){if(typeof v==='string')v=parseFloat(v.replace('%','').replace(',','.'));if(typeof v==='number'&&!isNaN(v))progreso=v<=1?v*100:v;}}
-      const analiticosRaw=colMap.analiticos!==undefined?row[colMap.analiticos]:null;
-      records.push({
-        no:colMap.no!==undefined?row[colMap.no]:(records.length+1),
-        poste:poste!==null&&poste!==undefined?String(poste).trim():'',
-        tarea:tarea!==null&&tarea!==undefined?String(tarea).trim():'',
-        coordsRaw:coords!==null&&coords!==undefined?String(coords).trim():'',
-        coords:parseCoords(coords),
-        obs:obs!==null&&obs!==undefined?String(obs).trim():'',
-        obsCategoria:categorizeObs(obs),
-        progreso,
-        analiticos:(analiticosRaw!==null&&analiticosRaw!==undefined&&String(analiticosRaw).trim()!=='')?String(analiticosRaw).trim():null,
-        sheet:sheetName,
-        _loadedAt:new Date().toISOString(),
-        _isNew:false,
-        _isUpdated:false
-      });
+    if(headerRowIdx!==-1){
+      for(let r=0;r<headerRowIdx;r++){const v=rows[r]&&rows[r][0];if(v&&typeof v==='string'&&v.trim().length>3){projectName=v.trim();break;}}
+      for(let r=headerRowIdx+1;r<rows.length;r++){
+        const row=rows[r]||[];
+        const poste=colMap.poste!==undefined?row[colMap.poste]:null;
+        const obs=colMap.obs!==undefined?row[colMap.obs]:null;
+        const coords=colMap.coords!==undefined?row[colMap.coords]:null;
+        const tarea=colMap.tarea!==undefined?row[colMap.tarea]:null;
+        const isEmpty=v=>v===null||v===undefined||String(v).trim()==='';
+        if(isEmpty(poste)&&isEmpty(obs)&&isEmpty(coords)&&isEmpty(tarea))continue;
+        let progreso=null;
+        if(colMap.progreso!==undefined){let v=row[colMap.progreso];if(v!==null&&v!==undefined&&v!==''){if(typeof v==='string')v=parseFloat(v.replace('%','').replace(',','.'));if(typeof v==='number'&&!isNaN(v))progreso=v<=1?v*100:v;}}
+        const analiticosRaw=colMap.analiticos!==undefined?row[colMap.analiticos]:null;
+        records.push({
+          no:colMap.no!==undefined?row[colMap.no]:(records.length+1),
+          poste:poste!==null&&poste!==undefined?String(poste).trim():'',
+          tarea:tarea!==null&&tarea!==undefined?String(tarea).trim():'',
+          coordsRaw:coords!==null&&coords!==undefined?String(coords).trim():'',
+          coords:parseCoords(coords),
+          obs:obs!==null&&obs!==undefined?String(obs).trim():'',
+          obsCategoria:categorizeObs(obs),
+          progreso,
+          analiticos=(analiticosRaw!==null&&analiticosRaw!==undefined&&String(analiticosRaw).trim()!=='')?String(analiticosRaw).trim():null,
+          sheet:"Hoja1",
+          _loadedAt:new Date().toISOString(),
+          _isNew:false,
+          _isUpdated:false
+        });
+      }
     }
-  });
+  }
   return{records,projectName};
 }
 
@@ -463,28 +465,17 @@ function extractRecords(sheetsData){
    DEDUPLICACIÓN Y MERGE
    ═══════════════════════════════════════════════════════════════ */
 function recordKey(r){
-  if(r.poste&&r.poste.trim()){
-    return'P:'+normalize(r.poste.trim());
-  }
-  if(r.coords){
-    return'C:'+r.coords.lat.toFixed(4)+','+r.coords.lon.toFixed(4);
-  }
-  if(r.tarea){
-    return'D:'+normalize(r.tarea).slice(0,60);
-  }
+  if(r.poste&&r.poste.trim()){return'P:'+normalize(r.poste.trim());}
+  if(r.coords){return'C:'+r.coords.lat.toFixed(4)+','+r.coords.lon.toFixed(4);}
+  if(r.tarea){return'D:'+normalize(r.tarea).slice(0,60);}
   return'X:'+normalize(r.obs).slice(0,40);
 }
 
 function mergeRecords(existingRecords, newRecords){
   const index={};
-  existingRecords.forEach((r,i)=>{
-    const k=recordKey(r);
-    index[k]=i;
-  });
-
+  existingRecords.forEach((r,i)=>{index[recordKey(r)]=i;});
   const merged=[...existingRecords];
   let added=0,updated=0;
-
   newRecords.forEach(nr=>{
     const k=recordKey(nr);
     if(k in index){
@@ -496,35 +487,26 @@ function mergeRecords(existingRecords, newRecords){
         updated++;
       }
     } else {
-      nr._isNew=true;
-      nr._isUpdated=false;
-      merged.push(nr);
-      index[k]=merged.length-1;
-      added++;
+      nr._isNew=true;nr._isUpdated=false;
+      merged.push(nr);index[k]=merged.length-1;added++;
     }
   });
-
   return{merged,added,updated};
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   COUNTER ANIMATION
+   ANIMACIONES E INTERFAZ GENERAL
    ═══════════════════════════════════════════════════════════════ */
 function animateCount(el,to,suffix='',duration=700){
-  const from=parseInt(el.textContent)||0;
-  const start=performance.now();
+  const from=parseInt(el.textContent)||0;const start=performance.now();
   function tick(now){
-    const p=Math.min(1,(now-start)/duration);
-    const ease=1-Math.pow(1-p,3);
+    const p=Math.min(1,(now-start)/duration);const ease=1-Math.pow(1-p,3);
     el.textContent=Math.round(from+(to-from)*ease)+suffix;
     if(p<1)requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   RENDER KPIs
-   ═══════════════════════════════════════════════════════════════ */
 function renderKPIs(records,projectName){
   const total=records.length;
   const conA=records.filter(r=>r.analiticos).length;
@@ -554,28 +536,20 @@ function renderKPIs(records,projectName){
   animateCount(document.getElementById('dbNuevos'),meta.newSession||0);
   document.getElementById('dbFecha').textContent=meta.lastDate?new Date(meta.lastDate).toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
 
-  document.getElementById('subtitle').textContent=
-    `${projectName||'Proyecto'} · ${total} postes (${db.length} históricos) · ${new Date().toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}`;
+  document.getElementById('subtitle').textContent=`${projectName||'Proyecto'} · ${total} postes (${db.length} históricos) · ${new Date().toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}`;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   CHARTS
+   GRAFICOS (Chart.js)
    ═══════════════════════════════════════════════════════════════ */
-const GRID='rgba(255,255,255,.05)';
-const TICK='#94A3B8';
-const FONT={family:'Inter',size:12};
-const TT={backgroundColor:'rgba(15,23,42,.95)',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleColor:'#F1F5F9',bodyColor:'#94A3B8',padding:12,cornerRadius:10,titleFont:{family:'Space Grotesk',size:13,weight:'600'},bodyFont:{family:'JetBrains Mono',size:12},displayColors:true,boxWidth:10,boxHeight:10,boxPadding:4};
-function dc(key){if(charts[key]){charts[key].destroy();delete charts[key];}}
-
 function renderCharts(records){
-  const counts={};
-  records.forEach(r=>{counts[r.obsCategoria]=(counts[r.obsCategoria]||0)+1;});
+  const counts={};records.forEach(r=>{counts[r.obsCategoria]=(counts[r.obsCategoria]||0)+1;});
   const obs_labels=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
   dc('obs');
   charts.obs=new Chart(document.getElementById('chartObservaciones'),{
     type:'bar',
     data:{labels:obs_labels,datasets:[{label:'Postes',data:obs_labels.map(l=>counts[l]),backgroundColor:obs_labels.map(l=>(OBS_COLORS[l]||'#64748B')+'99'),borderColor:obs_labels.map(l=>OBS_COLORS[l]||'#64748B'),borderWidth:2,borderRadius:10,borderSkipped:false,hoverBackgroundColor:obs_labels.map(l=>OBS_COLORS[l]||'#64748B')}]},
-    options:{responsive:true,maintainAspectRatio:false,animation:{duration:800,easing:'easeOutQuart'},plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:ctx=>` ${ctx.parsed.y} postes`}}},scales:{x:{ticks:{color:TICK,font:{...FONT,size:11},autoSkip:false,maxRotation:30},grid:{display:false},border:{display:false}},y:{ticks:{color:TICK,font:FONT,precision:0},grid:{color:GRID},border:{display:false},beginAtZero:true}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:ctx=>` ${ctx.parsed.y} postes`}}},scales:{x:{ticks:{color:TICK,font:{...FONT,size:11},autoSkip:false,maxRotation:30},grid:{display:false},border:{display:false}},y:{ticks:{color:TICK,font:FONT,precision:0},grid:{color:GRID},border:{display:false},beginAtZero:true}}}
   });
 
   const bc={};records.forEach(r=>{const b=progresoBucket(r.progreso);bc[b]=(bc[b]||0)+1;});
@@ -586,7 +560,7 @@ function renderCharts(records){
   charts.avance=new Chart(document.getElementById('chartAvance'),{
     type:'doughnut',
     data:{labels:av_labels,datasets:[{data:av_labels.map(l=>bc[l]),backgroundColor:av_labels.map(l=>BUCKET_COLORS[l]+'CC'),borderColor:av_labels.map(l=>BUCKET_COLORS[l]),borderWidth:2,hoverOffset:10}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'72%',animation:{animateRotate:true,duration:1000,easing:'easeOutQuart'},plugins:{legend:{position:'bottom',labels:{color:TICK,font:{...FONT,size:11},boxWidth:10,padding:10,usePointStyle:true,pointStyle:'circle'}},tooltip:{...TT,callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed} (${(ctx.parsed/records.length*100).toFixed(0)}%)`}}}},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{position:'bottom',labels:{color:TICK,font:{...FONT,size:11},boxWidth:10,padding:10,usePointStyle:true,pointStyle:'circle'}},tooltip:{...TT,callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed} (${(ctx.parsed/records.length*100).toFixed(0)}%)`}}}},
     plugins:[{id:'ca',afterDraw(chart){const{ctx,chartArea}=chart;const x=(chartArea.left+chartArea.right)/2,y=(chartArea.top+chartArea.bottom)/2;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 26px "Space Grotesk",sans-serif';const g=ctx.createLinearGradient(x-36,y,x+36,y);g.addColorStop(0,'#10B981');g.addColorStop(1,'#06B6D4');ctx.fillStyle=g;ctx.fillText(avg.toFixed(0)+'%',x,y-7);ctx.font='500 10px "JetBrains Mono",monospace';ctx.fillStyle='#94A3B8';ctx.fillText('PROMEDIO',x,y+12);ctx.restore();}}]
   });
 
@@ -595,7 +569,7 @@ function renderCharts(records){
   charts.analiticos=new Chart(document.getElementById('chartAnaliticos'),{
     type:'doughnut',
     data:{labels:['Con analíticos','Sin analíticos'],datasets:[{data:[con,sin],backgroundColor:['rgba(139,92,246,.7)','rgba(30,41,59,.8)'],borderColor:['#8B5CF6','rgba(255,255,255,.08)'],borderWidth:2,hoverOffset:8}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',animation:{animateRotate:true,duration:1000},plugins:{legend:{position:'bottom',labels:{color:TICK,font:{...FONT,size:11},boxWidth:10,padding:8,usePointStyle:true,pointStyle:'circle'}},tooltip:{...TT,callbacks:{label:ctx=>{const t=con+sin;return` ${ctx.label}: ${ctx.parsed} (${t?(ctx.parsed/t*100).toFixed(0):0}%)`;}}}}},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{position:'bottom',labels:{color:TICK,font:{...FONT,size:11},boxWidth:10,padding:8,usePointStyle:true,pointStyle:'circle'}},tooltip:{...TT,callbacks:{label:ctx=>{const t=con+sin;return` ${ctx.label}: ${ctx.parsed} (${t?(ctx.parsed/t*100).toFixed(0):0}%)`;}}}}},
     plugins:[{id:'cen',afterDraw(chart){const{ctx,chartArea}=chart;const x=(chartArea.left+chartArea.right)/2,y=(chartArea.top+chartArea.bottom)/2;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 24px "Space Grotesk",sans-serif';ctx.fillStyle='#A78BFA';ctx.fillText(con,x,y-7);ctx.font='500 10px "JetBrains Mono",monospace';ctx.fillStyle='#94A3B8';ctx.fillText('ANALÍTICOS',x,y+12);ctx.restore();}}]
   });
 
@@ -604,7 +578,7 @@ function renderCharts(records){
   charts.pendientes=new Chart(document.getElementById('chartPendientes'),{
     type:'bar',
     data:{labels:pending.map(r=>`P-${r.poste}`),datasets:[{label:'Progreso',data:pending.map(r=>r.progreso),backgroundColor:pending.map(r=>BUCKET_COLORS[progresoBucket(r.progreso)]+'CC'),borderColor:pending.map(r=>BUCKET_COLORS[progresoBucket(r.progreso)]),borderWidth:1.5,borderRadius:6,borderSkipped:false}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:{duration:800,easing:'easeOutQuart'},plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:ctx=>` ${ctx.parsed.x.toFixed(0)}% completado`,afterLabel:ctx=>{const o=pending[ctx.dataIndex].obs||'Sin observación';return o.length>50?o.slice(0,50)+'…':o;}}}},scales:{x:{min:0,max:100,ticks:{color:TICK,font:{...FONT,size:10},callback:v=>v+'%'},grid:{color:GRID},border:{display:false}},y:{ticks:{color:TICK,font:{...FONT,size:10}},grid:{display:false},border:{display:false}}}}
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:ctx=>` ${ctx.parsed.x.toFixed(0)}% completado`,afterLabel:ctx=>{return pending[ctx.dataIndex].obs||'Sin observación';}}}},scales:{x:{min:0,max:100,ticks:{color:TICK,font:{...FONT,size:10},callback:v=>v+'%'},grid:{color:GRID},border:{display:false}},y:{ticks:{color:TICK,font:{...FONT,size:10}},grid:{display:false},border:{display:false}}}}
   });
 
   const withCoords=records.filter(r=>r.coords);
@@ -614,237 +588,123 @@ function renderCharts(records){
   charts.mapa=new Chart(document.getElementById('chartMapa'),{
     type:'scatter',
     data:{datasets:BUCKET_ORDER.filter(b=>dsMap[b].length).map(b=>({label:b,data:dsMap[b],backgroundColor:BUCKET_COLORS[b]+'CC',borderColor:BUCKET_COLORS[b],borderWidth:1.5,pointRadius:5,pointHoverRadius:8,pointStyle:'circle'}))},
-    options:{responsive:true,maintainAspectRatio:false,animation:{duration:700},plugins:{legend:{position:'bottom',labels:{color:TICK,font:{...FONT,size:10},boxWidth:8,padding:8,usePointStyle:true,pointStyle:'circle'}},tooltip:{...TT,callbacks:{label:ctx=>` Poste ${ctx.raw.poste||'—'} · ${ctx.raw.progreso!==null?ctx.raw.progreso.toFixed(0)+'%':'sin dato'}`}}},scales:{x:{title:{display:true,text:'Longitud',color:TICK,font:{...FONT,size:10}},ticks:{color:TICK,font:{...FONT,size:9}},grid:{color:GRID},border:{display:false}},y:{title:{display:true,text:'Latitud',color:TICK,font:{...FONT,size:10}},ticks:{color:TICK,font:{...FONT,size:9}},grid:{color:GRID},border:{display:false}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:TICK,font:{...FONT,size:10},boxWidth:8,padding:8,usePointStyle:true,pointStyle:'circle'}},tooltip:{...TT,callbacks:{label:ctx=>` Poste ${ctx.raw.poste||'—'} · ${ctx.raw.progreso!==null?ctx.raw.progreso.toFixed(0)+'%':'sin dato'}`}}},scales:{x:{title:{display:true,text:'Longitud',color:TICK,font:{...FONT,size:10}},ticks:{color:TICK,font:{...FONT,size:9}},grid:{color:GRID},border:{display:false}},y:{title:{display:true,text:'Latitud',color:TICK,font:{...FONT,size:10}},ticks:{color:TICK,font:{...FONT,size:9}},grid:{color:GRID},border:{display:false}}}}
   });
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   TABLE
+   TABLA DETALLADA Y LOGICA COMPLEMENTARIA
    ═══════════════════════════════════════════════════════════════ */
 function getPC(p){
-  if(p===null)return{c:'#94A3B8',f:'#94A3B8'};
-  if(p>=100)return{c:'#34D399',f:'#10B981'};
-  if(p>=75)return{c:'#38BDF8',f:'#06B6D4'};
-  if(p>=50)return{c:'#FCD34D',f:'#FACC15'};
-  if(p>0)return{c:'#FB923C',f:'#F97316'};
-  return{c:'#F87171',f:'#EF4444'};
+  if(p===null)return{c:'#94A3B8',f:'#94A3B8'};if(p>=100)return{c:'#34D399',f:'#10B981'};
+  if(p>=75)return{c:'#38BDF8',f:'#06B6D4'};if(p>=50)return{c:'#FCD34D',f:'#FACC15'};
+  if(p>0)return{c:'#FB923C',f:'#F97316'};return{c:'#F87171',f:'#EF4444'};
 }
 
 function renderTable(records){
-  const tbody=document.getElementById('tableBody');
-  tbody.innerHTML='';
+  const tbody=document.getElementById('tableBody');tbody.innerHTML='';
   records.forEach(r=>{
     const tr=document.createElement('tr');
-    if(r.analiticos)tr.className='row-analitico';
-    else if(r._isUpdated)tr.className='row-updated';
+    if(r.analiticos)tr.className='row-analitico';else if(r._isUpdated)tr.className='row-updated';
     tr.dataset.search=normalize(`${r.poste} ${r.tarea} ${r.obs} ${r.coordsRaw}`);
-
     const pc=getPC(r.progreso);
-    const progresoHtml=r.progreso===null
-      ?'<span style="color:#475569;font-family:\'JetBrains Mono\',monospace;font-size:11px">—</span>'
-      :`<div style="display:flex;align-items:center;gap:7px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:${pc.c}">${r.progreso.toFixed(0)}%</span><div class="mini-pbar"><div class="mini-fill" style="width:${Math.min(100,r.progreso)}%;background:${pc.f}"></div></div></div>`;
-
-    const obsCat=r.obsCategoria||'Sin observación';
-    const oc=OBS_COLORS[obsCat]||'#64748B',ob=OBS_BG[obsCat]||'rgba(100,116,139,.1)';
-    const obsHtml=r.obs
-      ?`<div style="display:flex;flex-direction:column;gap:4px"><span class="badge-obs" style="background:${ob};color:${oc};border:1px solid ${oc}33">${esc(obsCat)}</span><span style="font-size:11px;color:#94A3B8;max-width:200px;line-height:1.4">${esc(r.obs.length>60?r.obs.slice(0,60)+'…':r.obs)}</span></div>`
-      :'<span style="color:#475569;font-size:11px">—</span>';
-
+    const progresoHtml=r.progreso===null?'<span style="color:#475569;font-family:\'JetBrains Mono\';font-size:11px">—</span>':`<div style="display:flex;align-items:center;gap:7px"><span style="font-family:'JetBrains Mono';font-size:12px;font-weight:700;color:${pc.c}">${r.progreso.toFixed(0)}%</span><div class="mini-pbar"><div class="mini-fill" style="width:${Math.min(100,r.progreso)}%;background:${pc.f}"></div></div></div>`;
+    const obsCat=r.obsCategoria||'Sin observación';const oc=OBS_COLORS[obsCat]||'#64748B',ob=OBS_BG[obsCat]||'rgba(100,116,139,.1)';
+    const obsHtml=r.obs?`<div style="display:flex;flex-direction:column;gap:4px"><span class="badge-obs" style="background:${ob};color:${oc};border:1px solid ${oc}33">${esc(obsCat)}</span><span style="font-size:11px;color:#94A3B8;max-width:200px;line-height:1.4">${esc(r.obs.length>60?r.obs.slice(0,60)+'…':r.obs)}</span></div>`:'<span style="color:#475569;font-size:11px">—</span>';
     const anHtml=r.analiticos?`<div class="badge-analitico">${esc(r.analiticos)}</div>`:'<span style="color:#334155;font-size:11px">—</span>';
-    const posteBadge=r.poste?`<span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#60A5FA;background:rgba(37,99,235,.12);padding:3px 8px;border-radius:6px;border:1px solid rgba(37,99,235,.25)">${esc(r.poste)}</span>`:'<span style="color:#475569">—</span>';
-    
+    const posteBadge=r.poste?`<span style="font-family:'JetBrains Mono';font-size:13px;font-weight:700;color:#60A5FA;background:rgba(37,99,235,.12);padding:3px 8px;border-radius:6px;border:1px solid rgba(37,99,235,.25)">${esc(r.poste)}</span>`:'<span style="color:#475569">—</span>';
     let estadoHtml='<span style="color:#475569;font-family:var(--mo);font-size:10px">—</span>';
-    if(r._isNew)estadoHtml='<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;background:rgba(16,185,129,.15);color:#34D399;border:1px solid rgba(16,185,129,.3);padding:2px 7px;border-radius:5px;font-weight:700">● NUEVO</span>';
-    else if(r._isUpdated)estadoHtml='<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;background:rgba(6,182,212,.15);color:#38BDF8;border:1px solid rgba(6,182,212,.3);padding:2px 7px;border-radius:5px;font-weight:700">↑ ACTUALIZADO</span>';
-
-    tr.innerHTML=`
-      <td style="color:#475569;font-family:'JetBrains Mono',monospace;font-size:11px;min-width:32px">${esc(String(r.no))}</td>
-      <td>${posteBadge}</td>
-      <td style="max-width:200px;font-size:12px;color:#CBD5E1;line-height:1.4">${esc((r.tarea||'—').length>75?(r.tarea||'').slice(0,75)+'…':r.tarea||'—')}</td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#64748B;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis">${esc(r.coordsRaw||'—')}</td>
-      <td style="min-width:110px">${progresoHtml}</td>
-      <td>${obsHtml}</td>
-      <td>${anHtml}</td>
-      <td>${estadoHtml}</td>
-    `;
+    if(r._isNew)estadoHtml='<span style="font-family:\'JetBrains Mono\';font-size:10px;background:rgba(16,185,129,.15);color:#34D399;border:1px solid rgba(16,185,129,.3);padding:2px 7px;border-radius:5px;font-weight:700">● NUEVO</span>';
+    else if(r._isUpdated)estadoHtml='<span style="font-family:\'JetBrains Mono\';font-size:10px;background:rgba(6,182,212,.15);color:#38BDF8;border:1px solid rgba(6,182,212,.3);padding:2px 7px;border-radius:5px;font-weight:700">↑ ACTUALIZADO</span>';
+    tr.innerHTML=`<td style="color:#475569;font-family:'JetBrains Mono';font-size:11px;min-width:32px">${esc(String(r.no))}</td><td>${posteBadge}</td><td style="max-width:200px;font-size:12px;color:#CBD5E1;line-height:1.4">${esc((r.tarea||'—').length>75?(r.tarea||'').slice(0,75)+'…':r.tarea||'—')}</td><td style="font-family:'JetBrains Mono';font-size:10px;color:#64748B;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis">${esc(r.coordsRaw||'—')}</td><td style="min-width:110px">${progresoHtml}</td><td>${obsHtml}</td><td>${anHtml}</td><td>${estadoHtml}</td>`;
     tbody.appendChild(tr);
   });
   document.getElementById('tableCount').textContent=`${records.length} registros`;
 }
 
 document.getElementById('tableSearch').addEventListener('input',e=>{
-  const q=normalize(e.target.value);
-  const rows=document.querySelectorAll('#tableBody tr');
-  let v=0;
+  const q=normalize(e.target.value);const rows=document.querySelectorAll('#tableBody tr');let v=0;
   rows.forEach(tr=>{const m=!q||tr.dataset.search.includes(q);tr.style.display=m?'':'none';if(m)v++;});
   document.getElementById('tableCount').textContent=`${v} de ${rows.length} registros`;
 });
 
-/* ═══════════════════════════════════════════════════════════════
-   RENDER DASHBOARD
-   ═══════════════════════════════════════════════════════════════ */
 let _projectName='';
-
 function renderDashboard(records,projectName){
   _projectName=projectName||_projectName||'Proyecto';
   document.getElementById('emptyState').style.display='none';
   document.getElementById('dashboard').style.display='block';
-  renderKPIs(records,_projectName);
-  renderCharts(records);
-  renderTable(records);
+  renderKPIs(records,_projectName);renderCharts(records);renderTable(records);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   TOAST
-   ═══════════════════════════════════════════════════════════════ */
 function showToast(msg,isWarn=false){
-  const t=document.getElementById('toast');
-  t.innerHTML=msg;
+  const t=document.getElementById('toast');t.innerHTML=msg;
   t.style.borderColor=isWarn?'rgba(251,191,36,.4)':'rgba(16,185,129,.4)';
-  t.classList.add('show');
-  clearTimeout(t._timer);
-  t._timer=setTimeout(()=>t.classList.remove('show'),4000);
+  t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),4000);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   MERGE INTO DB
-   ═══════════════════════════════════════════════════════════════ */
 function mergeAndRender(newRecords,projectName,filename){
   db.forEach(r=>{r._isNew=false;r._isUpdated=false;});
-  
-  const{merged,added,updated}=mergeRecords(db,newRecords);
-  db=merged;
-  
-  meta.archivos=(meta.archivos||0)+1;
-  meta.lastDate=new Date().toISOString();
-  meta.updatedSession=(meta.updatedSession||0)+updated;
-  meta.newSession=(meta.newSession||0)+added;
-  
-  saveDB(db);
-  saveMeta(meta);
-  
-  renderDashboard(db,projectName);
-  
-  const emoji=added>0?'🟢':'🔄';
-  showToast(`${emoji} <strong style="color:#F1F5F9">${filename}</strong> procesado · <span style="color:#34D399">+${added} nuevos</span> · <span style="color:#38BDF8">${updated} actualizados</span> · Total: ${db.length} registros`);
-  
-  document.getElementById('uploadStatus').innerHTML=
-    `<span style="color:#10B981">●</span> ${esc(filename)} · +${added} nuevos · ${updated} actualiz.`;
+  const{merged,added,updated}=mergeRecords(db,newRecords);db=merged;
+  meta.archivos=(meta.archivos||0)+1;meta.lastDate=new Date().toISOString();
+  meta.updatedSession=(meta.updatedSession||0)+updated;meta.newSession=(meta.newSession||0)+added;
+  saveDB(db);saveMeta(meta);renderDashboard(db,projectName);
+  showToast(`${added>0?'🟢':'🔄'} <strong>${filename}</strong> procesado · <span style="color:#34D399">+${added} nuevos</span> · Total: ${db.length} registros`);
+  document.getElementById('uploadStatus').innerHTML=`<span style="color:#10B981">●</span> ${esc(filename)} · +${added} nuevos`;
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   CARGA DE ARCHIVO
-   ═══════════════════════════════════════════════════════════════ */
-function workbookToSheetsDict(wb){
-  const d={};wb.SheetNames.forEach(n=>{d[n]=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:null,raw:true});});return d;
-}
-
+function workbookToSheetsDict(wb){const d={};wb.SheetNames.forEach(n=>{d[n]=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:null,raw:true});});return d;}
 function handleFile(file){
-  if(!file)return;
-  document.getElementById('uploadStatus').textContent=`Leyendo "${file.name}"…`;
-  const reader=new FileReader();
+  if(!file)return;document.getElementById('uploadStatus').textContent=`Leyendo "${file.name}"…`;const reader=new FileReader();
   reader.onload=function(e){
     try{
-      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
-      const{records,projectName}=extractRecords(workbookToSheetsDict(wb));
-      if(!records.length){document.getElementById('uploadStatus').textContent=`Sin datos reconocibles en "${file.name}".`;return;}
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});const{records,projectName}=extractRecords(workbookToSheetsDict(wb));
+      if(!records.length){document.getElementById('uploadStatus').textContent=`Sin datos en Hoja1 de "${file.name}".`;return;}
       mergeAndRender(records,projectName,file.name);
-    }catch(err){
-      document.getElementById('uploadStatus').textContent=`Error: ${err.message}`;
-      showToast(`⚠️ Error al leer ${file.name}: ${err.message}`,true);
-    }
-  };
-  reader.readAsArrayBuffer(file);
+    }catch(err){document.getElementById('uploadStatus').textContent=`Error: ${err.message}`;showToast(`⚠️ Error: ${err.message}`,true);}
+  };reader.readAsArrayBuffer(file);
 }
-
 document.getElementById('fileInput').addEventListener('change',e=>{handleFile(e.target.files[0]);e.target.value='';});
 const dz=document.getElementById('dropzone');
 ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('dragover');}));
 ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('dragover');}));
 dz.addEventListener('drop',e=>{const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)handleFile(f);});
 
-/* ═══════════════════════════════════════════════════════════════
-   RELOAD FROM EMBEDDED
-   ═══════════════════════════════════════════════════════════════ */
 function reloadFromEmbedded(){
   try{
     if(typeof EMBEDDED_SHEETS==='undefined'){showToast('⚠️ No hay datos precargados.',true);return;}
     const{records,projectName}=extractRecords(EMBEDDED_SHEETS);
-    if(!records.length){showToast('⚠️ Datos precargados vacíos.',true);return;}
+    if(!records.length){showToast('⚠️ Datos vacíos.',true);return;}
     mergeAndRender(records,projectName,'Programa_de_Proyecto.xlsx (precargado)');
-  }catch(err){showToast('⚠️ Error al recargar datos precargados: '+err.message,true);}
+  }catch(err){showToast('⚠️ Error: '+err.message,true);}
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   LIMPIAR BD
-   ═══════════════════════════════════════════════════════════════ */
-function confirmarLimpiar(){
-  document.getElementById('modalCount').textContent=`${db.length} registros`;
-  document.getElementById('modal').style.display='flex';
-}
+function confirmarLimpiar(){document.getElementById('modalCount').textContent=`${db.length} registros`;document.getElementById('modal').style.display='flex';}
 function closeModal(){document.getElementById('modal').style.display='none';}
 function limpiarDB(){
-  closeModal();
-  try{localStorage.removeItem(STORE_KEY);localStorage.removeItem(META_KEY);}catch{}
-  db=[];
-  meta={archivos:0,lastDate:null,updatedSession:0,newSession:0};
-  document.getElementById('emptyState').style.display='block';
-  document.getElementById('dashboard').style.display='none';
-  document.getElementById('uploadStatus').textContent='Base de datos limpiada.';
-  showToast('🗑️ Base de datos eliminada correctamente.');
+  closeModal();try{localStorage.removeItem(STORE_KEY);localStorage.removeItem(META_KEY);}catch{}
+  db=[];meta={archivos:0,lastDate:null,updatedSession:0,newSession:0};
+  document.getElementById('emptyState').style.display='block';document.getElementById('dashboard').style.display='none';
+  document.getElementById('uploadStatus').textContent='Base de datos limpia.';showToast('🗑️ Base de datos eliminada.');
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   EXPORTAR DATOS
-   ═══════════════════════════════════════════════════════════════ */
 function exportarDatos(){
-  if(!db.length){showToast('⚠️ No hay datos para exportar.',true);return;}
-  const rows=[['No','Poste','Dirección','Coordenadas','Latitud','Longitud','Progreso (%)','Observaciones','Categoría Obs.','Analíticos','Estado','Fecha carga']];
-  db.forEach(r=>{
-    rows.push([
-      r.no,r.poste||'',r.tarea||'',r.coordsRaw||'',
-      r.coords?r.coords.lat:'',r.coords?r.coords.lon:'',
-      r.progreso!==null?r.progreso.toFixed(1):'',
-      r.obs||'',r.obsCategoria||'',r.analiticos||'',
-      r._isNew?'Nuevo':r._isUpdated?'Actualizado':'Existing',
-      r._loadedAt?new Date(r._loadedAt).toLocaleString('es-MX'):''
-    ]);
-  });
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.aoa_to_sheet(rows);
-  XLSX.utils.book_append_sheet(wb,'Postes Acumulados',ws);
-  const fecha=new Date().toISOString().slice(0,10);
-  XLSX.writeFile(wb,`C2_MC_Export_${fecha}.xlsx`);
-  showToast(`📥 Exportado: C2_MC_Export_${fecha}.xlsx (${db.length} registros)`);
+  if(!db.length){showToast('⚠️ Sin datos.',true);return;}
+  const rows=[['No','Poste','Dirección','Coordenadas','Latitud','Longitud','Progreso (%)','Observaciones','Categoría Obs.','Analíticos','Estado']];
+  db.forEach(r=>{rows.push([r.no,r.poste||'',r.tarea||'',r.coordsRaw||'',r.coords?r.coords.lat:'',r.coords?r.coords.lon:'',r.progreso!==null?r.progreso.toFixed(1):'',r.obs||'',r.obsCategoria||'',r.analiticos||'',r._isNew?'Nuevo':r._isUpdated?'Actualizado':'Existente']);});
+  const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,'Hoja1 Postes',ws);
+  XLSX.writeFile(wb,`C2_MC_Hoja1_Export_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   INICIO
-   ═══════════════════════════════════════════════════════════════ */
 (function init(){
-  db=loadDB();
-  meta=loadMeta();
-
+  db=loadDB();meta=loadMeta();
   if(db.length>0){
-    db.forEach(r=>{r._isNew=false;r._isUpdated=false;});
-    renderDashboard(db,'');
-    showToast(`💾 ${db.length} registros restaurados de sesiones anteriores`);
-    document.getElementById('uploadStatus').textContent=`LocalStorage: ${db.length} registros guardados.`;
+    db.forEach(r=>{r._isNew=false;r._isUpdated=false;});renderDashboard(db,'');
+    document.getElementById('uploadStatus').textContent=`LocalStorage: ${db.length} registros.`;
   } else {
     try{
       if(typeof EMBEDDED_SHEETS!=='undefined'){
         const{records,projectName}=extractRecords(EMBEDDED_SHEETS);
         if(records.length){
-          records.forEach(r=>{r._isNew=false;r._isUpdated=false;});
-          db=records;
-          meta.archivos=1;
-          meta.lastDate=new Date().toISOString();
-          saveDB(db);saveMeta(meta);
-          renderDashboard(db,projectName);
-          document.getElementById('uploadStatus').innerHTML=`<span style="color:#10B981">●</span> Programa_de_Proyecto.xlsx — ${db.length} registros (precargado)`;
+          db=records;meta.archivos=1;meta.lastDate=new Date().toISOString();
+          saveDB(db);saveMeta(meta);renderDashboard(db,projectName);
         }
       }
-    }catch(err){console.error('Init error:',err);}
+    }catch(err){console.error(err);}
   }
 })();
 </script>
