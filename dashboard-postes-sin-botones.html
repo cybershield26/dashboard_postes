@@ -1,0 +1,3205 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard Ejecutivo de Postes</title>
+<script>
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Arial', 'sans-serif'],
+          },
+          colors: {
+            electric: '#2563EB',
+            cyanx: '#06B6D4',
+            emeraldx: '#10B981',
+            violetx: '#8B5CF6',
+            orangex: '#F97316',
+            yellowx: '#FACC15',
+            coralx: '#EF4444',
+            ink: '#0F172A',
+          },
+        },
+      },
+    };
+  </script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+    * {
+      box-sizing: border-box;
+      letter-spacing: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(135deg, #0F172A 0%, #1E293B 45%, #111827 100%);
+      background-size: 34px 34px, 34px 34px, cover;
+      color: #F8FAFC;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .glass {
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .panel {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.055));
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 22px 55px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .kpi-card {
+      position: relative;
+      overflow: hidden;
+      transform: translateY(0);
+      transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+    }
+
+    .kpi-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(255, 255, 255, 0.18), transparent 38%, rgba(255, 255, 255, 0.09));
+      pointer-events: none;
+      opacity: 0.72;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.34);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .metric-number {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chart-shell {
+      min-height: 360px;
+    }
+
+    .chart-box {
+      position: relative;
+      height: 285px;
+      min-height: 285px;
+      width: 100%;
+    }
+
+    .table-wrap {
+      max-height: 520px;
+      overflow: auto;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .table-wrap::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb,
+    body::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #06B6D4, #8B5CF6);
+      border-radius: 999px;
+    }
+
+    .table-wrap::-webkit-scrollbar-track,
+    body::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.45);
+    }
+
+    .sticky-column-header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .badge-analytic {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border-radius: 999px;
+      border: 1px solid rgba(216, 180, 254, 0.45);
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.98), rgba(217, 70, 239, 0.9));
+      color: #FFFFFF;
+      box-shadow: 0 10px 24px rgba(139, 92, 246, 0.3);
+      padding: 0.28rem 0.58rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .badge-neutral {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(148, 163, 184, 0.1);
+      color: #CBD5E1;
+      padding: 0.28rem 0.58rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .progress-track {
+      height: 0.55rem;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #10B981, #06B6D4, #FACC15);
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.38);
+      transition: width 600ms ease;
+    }
+
+    .file-input {
+      color: #E2E8F0;
+    }
+
+    .file-input::file-selector-button {
+      margin-right: 1rem;
+      border: 0;
+      border-radius: 0.5rem;
+      background: linear-gradient(135deg, #2563EB, #06B6D4);
+      color: #FFFFFF;
+      font-weight: 800;
+      padding: 0.72rem 1rem;
+      cursor: pointer;
+      box-shadow: 0 14px 30px rgba(37, 99, 235, 0.28);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .file-input::file-selector-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 38px rgba(6, 182, 212, 0.28);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+
+    .loaded .reveal {
+      animation: revealIn 560ms ease forwards;
+    }
+
+    .loaded .reveal:nth-child(2) {
+      animation-delay: 70ms;
+    }
+
+    .loaded .reveal:nth-child(3) {
+      animation-delay: 140ms;
+    }
+
+    .loaded .reveal:nth-child(4) {
+      animation-delay: 210ms;
+    }
+
+    .loaded .reveal:nth-child(5) {
+      animation-delay: 280ms;
+    }
+
+    @keyframes revealIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .chart-shell {
+        min-height: 330px;
+      }
+
+      .chart-box {
+        height: 250px;
+        min-height: 250px;
+      }
+
+      .table-wrap {
+        max-height: 430px;
+      }
+    }
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.left-3{left:0.75rem}.top-0{top:0px}.top-1\/2{top:50%}.z-10{z-index:10}.z-40{z-index:40}.mx-auto{margin-left:auto;margin-right:auto}.mb-2{margin-bottom:0.5rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mt-1{margin-top:0.25rem}.mt-2{margin-top:0.5rem}.mt-3{margin-top:0.75rem}.mt-5{margin-top:1.25rem}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-12{height:3rem}.h-16{height:4rem}.h-5{height:1.25rem}.h-7{height:1.75rem}.h-9{height:2.25rem}.min-h-\[420px\]{min-height:420px}.w-12{width:3rem}.w-16{width:4rem}.w-5{width:1.25rem}.w-7{width:1.75rem}.w-9{width:2.25rem}.w-fit{width:-moz-fit-content;width:fit-content}.w-full{width:100%}.min-w-0{min-width:0px}.min-w-\[980px\]{min-width:980px}.min-w-\[160px\]{min-width:160px}.max-w-2xl{max-width:42rem}.max-w-7xl{max-width:80rem}.max-w-xl{max-width:36rem}.max-w-\[240px\]{max-width:240px}.max-w-\[320px\]{max-width:320px}.max-w-\[360px\]{max-width:360px}.shrink-0{flex-shrink:0}.border-collapse{border-collapse:collapse}.-translate-y-1\/2{--tw-translate-y:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.divide-y > :not([hidden]) ~ :not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px * calc(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px * var(--tw-divide-y-reverse))}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-blue-300\/25{border-color:rgb(147 197 253 / 0.25)}.border-cyan-300\/30{border-color:rgb(103 232 249 / 0.3)}.border-emerald-300\/25{border-color:rgb(110 231 183 / 0.25)}.border-orange-300\/25{border-color:rgb(253 186 116 / 0.25)}.border-violet-300\/30{border-color:rgb(196 181 253 / 0.3)}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.border-white\/15{border-color:rgb(255 255 255 / 0.15)}.border-blue-300\/30{border-color:rgb(147 197 253 / 0.3)}.border-emerald-300\/40{border-color:rgb(110 231 183 / 0.4)}.bg-cyan-400\/10{background-color:rgb(34 211 238 / 0.1)}.bg-slate-950\/60{background-color:rgb(2 6 23 / 0.6)}.bg-slate-950\/75{background-color:rgb(2 6 23 / 0.75)}.bg-violet-500\/20{background-color:rgb(139 92 246 / 0.2)}.bg-violet-500\/10{background-color:rgb(139 92 246 / 0.1)}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.via-amber-500{--tw-gradient-to:rgb(245 158 11 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #f59e0b var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-blue-600{--tw-gradient-to:rgb(37 99 235 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #2563eb var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-fuchsia-600{--tw-gradient-to:rgb(192 38 211 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #c026d3 var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-teal-500{--tw-gradient-to:rgb(20 184 166 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #14b8a6 var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-purple-700{--tw-gradient-to:#7e22ce var(--tw-gradient-to-position)}.p-3{padding:0.75rem}.p-5{padding:1.25rem}.p-8{padding:2rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.pl-10{padding-left:2.5rem}.pr-4{padding-right:1rem}.text-left{text-align:left}.text-center{text-align:center}.align-top{vertical-align:top}.text-2xl{font-size:1.5rem;line-height:2rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-6{line-height:1.5rem}.text-blue-200{--tw-text-opacity:1;color:rgb(191 219 254 / var(--tw-text-opacity, 1))}.text-blue-50\/90{color:rgb(239 246 255 / 0.9)}.text-cyan-100{--tw-text-opacity:1;color:rgb(207 250 254 / var(--tw-text-opacity, 1))}.text-cyan-200{--tw-text-opacity:1;color:rgb(165 243 252 / var(--tw-text-opacity, 1))}.text-emerald-200{--tw-text-opacity:1;color:rgb(167 243 208 / var(--tw-text-opacity, 1))}.text-emerald-50\/90{color:rgb(236 253 245 / 0.9)}.text-orange-200{--tw-text-opacity:1;color:rgb(254 215 170 / var(--tw-text-opacity, 1))}.text-orange-50\/95{color:rgb(255 247 237 / 0.95)}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-violet-100{--tw-text-opacity:1;color:rgb(237 233 254 / var(--tw-text-opacity, 1))}.text-violet-200{--tw-text-opacity:1;color:rgb(221 214 254 / var(--tw-text-opacity, 1))}.text-violet-50\/90{color:rgb(245 243 255 / 0.9)}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-blue-100{--tw-text-opacity:1;color:rgb(219 234 254 / var(--tw-text-opacity, 1))}.text-emerald-100{--tw-text-opacity:1;color:rgb(209 250 229 / var(--tw-text-opacity, 1))}.text-red-200{--tw-text-opacity:1;color:rgb(254 202 202 / var(--tw-text-opacity, 1))}.text-slate-100{--tw-text-opacity:1;color:rgb(241 245 249 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-yellow-200{--tw-text-opacity:1;color:rgb(254 240 138 / var(--tw-text-opacity, 1))}.opacity-50{opacity:0.5}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-blue-600\/30{--tw-shadow-color:rgb(37 99 235 / 0.3);--tw-shadow:var(--tw-shadow-colored)}.shadow-blue-950\/35{--tw-shadow-color:rgb(23 37 84 / 0.35);--tw-shadow:var(--tw-shadow-colored)}.shadow-blue-950\/40{--tw-shadow-color:rgb(23 37 84 / 0.4);--tw-shadow:var(--tw-shadow-colored)}.shadow-emerald-950\/40{--tw-shadow-color:rgb(2 44 34 / 0.4);--tw-shadow:var(--tw-shadow-colored)}.shadow-orange-950\/40{--tw-shadow-color:rgb(67 20 7 / 0.4);--tw-shadow:var(--tw-shadow-colored)}.shadow-violet-700\/30{--tw-shadow-color:rgb(109 40 217 / 0.3);--tw-shadow:var(--tw-shadow-colored)}.shadow-violet-950\/25{--tw-shadow-color:rgb(46 16 101 / 0.25);--tw-shadow:var(--tw-shadow-colored)}.shadow-violet-950\/40{--tw-shadow-color:rgb(46 16 101 / 0.4);--tw-shadow:var(--tw-shadow-colored)}.outline-none{outline:2px solid transparent;outline-offset:2px}.ring-0{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.backdrop-blur-xl{--tw-backdrop-blur:blur(24px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.placeholder\:text-slate-500::placeholder{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.hover\:-translate-y-0\.5:hover{--tw-translate-y:-0.125rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:bg-violet-500\/30:hover{background-color:rgb(139 92 246 / 0.3)}.hover\:shadow-cyan-950\/40:hover{--tw-shadow-color:rgb(8 51 68 / 0.4);--tw-shadow:var(--tw-shadow-colored)}.focus\:border-cyan-300\/70:focus{border-color:rgb(103 232 249 / 0.7)}.disabled\:cursor-not-allowed:disabled{cursor:not-allowed}.disabled\:hover\:translate-y-0:hover:disabled{--tw-translate-y:0px;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@media (min-width: 640px){.sm\:w-80{width:20rem}.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}.sm\:justify-between{justify-content:space-between}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:text-2xl{font-size:1.5rem;line-height:2rem}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-base{font-size:1rem;line-height:1.5rem}}@media (min-width: 1024px){.lg\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.lg\:flex-row{flex-direction:row}.lg\:items-end{align-items:flex-end}.lg\:items-center{align-items:center}.lg\:justify-between{justify-content:space-between}.lg\:px-8{padding-left:2rem;padding-right:2rem}}@media (min-width: 1280px){.xl\:col-span-2{grid-column:span 2 / span 2}.xl\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.xl\:flex-row{flex-direction:row}.xl\:items-center{align-items:center}}</style></head>
+<body>
+<header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/75 backdrop-blur-xl">
+<div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
+<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+<div class="min-w-0">
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-electric to-cyanx shadow-lg shadow-blue-600/30">
+<svg aria-hidden="true" class="h-5 w-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M4 19V5"></path>
+<path d="M4 19h16"></path>
+<path d="M8 16v-5"></path>
+<path d="M12 16V8"></path>
+<path d="M16 16v-3"></path>
+</svg>
+</span>
+<h1 class="truncate text-xl font-black text-white sm:text-2xl">Dashboard Ejecutivo de Postes</h1>
+<span class="rounded-md border border-cyan-300/30 bg-cyan-400/10 px-2.5 py-1 text-xs font-bold text-cyan-100" id="sheetBadge">Hoja1 · 63 filas</span>
+</div>
+<p class="mt-1 text-sm font-medium text-slate-300">Seguimiento operativo, avance, observaciones y analíticos.</p>
+</div>
+
+</div>
+<div class="rounded-lg border px-4 py-3 text-sm font-semibold border-emerald-300/40 bg-emerald-500/12 text-emerald-100" id="statusMessage">Datos precargados: 63 registros listos para visualizar.</div>
+</div>
+</header>
+<main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 loaded" id="dashboardRoot">
+<section class="panel flex min-h-[420px] flex-col items-center justify-center rounded-lg p-8 text-center hidden" id="emptyState">
+<div class="mb-5 flex h-16 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-violetx via-electric to-cyanx shadow-2xl shadow-violet-700/30">
+<svg aria-hidden="true" class="h-9 w-9 text-white" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+<path d="M14 2v6h6"></path>
+<path d="M8 13h8"></path>
+<path d="M8 17h5"></path>
+</svg>
+</div>
+<h2 class="text-2xl font-black text-white sm:text-3xl">Carga un archivo para activar el dashboard</h2>
+<p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">Acepta archivos .xlsx, .xls y .csv con columnas de dirección, poste, coordenadas, observaciones, avance y analíticos.</p>
+</section>
+<section class="space-y-6" id="dashboardContent">
+<div class="grid grid-cols-1 gap-4 lg:grid-cols-4" id="summaryStrip">
+<article class="kpi-card reveal rounded-lg border border-blue-300/25 bg-gradient-to-br from-electric via-blue-600 to-cyanx p-5 shadow-2xl shadow-blue-950/40">
+<div class="relative z-10 flex items-start justify-between gap-4">
+<div>
+<p class="text-sm font-black uppercase text-blue-50/90">Total Postes</p>
+<p class="metric-number mt-3 text-4xl font-black text-white" id="kpiTotal">63</p>
+<p class="mt-2 text-sm font-semibold text-blue-50/90" id="kpiTotalHint">63 registros activos</p>
+</div>
+<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/18 text-white shadow-lg">
+<svg aria-hidden="true" class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M6 22V2"></path>
+<path d="M18 22V2"></path>
+<path d="M6 6h12"></path>
+<path d="M6 12h12"></path>
+<path d="M6 18h12"></path>
+</svg>
+</div>
+</div>
+<div class="relative z-10 mt-5 flex items-center gap-2 text-sm font-extrabold text-white">
+<span class="rounded-md bg-white/16 px-2 py-1">100%</span>
+<span>base operativa</span>
+</div>
+</article>
+<article class="kpi-card reveal rounded-lg border border-emerald-300/25 bg-gradient-to-br from-emeraldx via-teal-500 to-cyanx p-5 shadow-2xl shadow-emerald-950/40">
+<div class="relative z-10 flex items-start justify-between gap-4">
+<div>
+<p class="text-sm font-black uppercase text-emerald-50/90">Avance Proyecto</p>
+<p class="metric-number mt-3 text-4xl font-black text-white" id="kpiProgress">94%</p>
+<p class="mt-2 text-sm font-semibold text-emerald-50/90" id="kpiProgressHint">54 completados / 9 pendientes</p>
+</div>
+<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/18 text-white shadow-lg">
+<svg aria-hidden="true" class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M20 6 9 17l-5-5"></path>
+<path d="M20 20H4"></path>
+</svg>
+</div>
+</div>
+<div class="relative z-10 mt-5">
+<div class="progress-track">
+<div class="progress-fill" id="kpiProgressBar" style="width: 93.6508%;"></div>
+</div>
+</div>
+</article>
+<article class="kpi-card reveal rounded-lg border border-violet-300/30 bg-gradient-to-br from-violetx via-fuchsia-600 to-purple-700 p-5 shadow-2xl shadow-violet-950/40">
+<div class="relative z-10 flex items-start justify-between gap-4">
+<div>
+<p class="text-sm font-black uppercase text-violet-50/90">Analíticos</p>
+<p class="metric-number mt-3 text-4xl font-black text-white" id="kpiAnalytic">10</p>
+<p class="mt-2 text-sm font-semibold text-violet-50/90" id="kpiAnalyticHint">15.9% del total</p>
+</div>
+<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/18 text-white shadow-lg">
+<svg aria-hidden="true" class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8z"></path>
+<path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"></path>
+<path d="M5 14l.9 2.1L8 17l-2.1.9L5 20l-.9-2.1L2 17l2.1-.9z"></path>
+</svg>
+</div>
+</div>
+<div class="relative z-10 mt-5">
+<span class="badge-analytic">High Priority</span>
+</div>
+</article>
+<article class="kpi-card reveal rounded-lg border border-orange-300/25 bg-gradient-to-br from-orangex via-amber-500 to-yellowx p-5 shadow-2xl shadow-orange-950/40">
+<div class="relative z-10 flex items-start justify-between gap-4">
+<div>
+<p class="text-sm font-black uppercase text-orange-50/95">Observaciones</p>
+<p class="metric-number mt-3 text-4xl font-black text-white" id="kpiObservations">62</p>
+<p class="mt-2 text-sm font-semibold text-orange-50/95" id="kpiObservationsHint">3 críticas / 8 pendientes</p>
+</div>
+<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/18 text-white shadow-lg">
+<svg aria-hidden="true" class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+<path d="M12 9v4"></path>
+<path d="M12 17h.01"></path>
+</svg>
+</div>
+</div>
+<div class="relative z-10 mt-5 flex flex-wrap gap-2 text-sm font-extrabold text-white">
+<span class="rounded-md bg-red-500/28 px-2 py-1" id="criticalBadge">3 críticas</span>
+<span class="rounded-md bg-white/18 px-2 py-1" id="pendingBadge">8 pendientes</span>
+</div>
+</article>
+</div>
+<section class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+<article class="panel reveal chart-shell rounded-lg p-5">
+<div class="mb-4 flex items-center justify-between gap-3">
+<div>
+<h2 class="text-lg font-black text-white">Distribución de Observaciones</h2>
+<p class="text-sm font-medium text-slate-300">Clasificación operativa por tipo.</p>
+</div>
+<span class="rounded-md bg-cyan-400/12 px-3 py-1 text-xs font-black uppercase text-cyan-200">Barras</span>
+</div>
+<div class="chart-box"><canvas height="427" id="observationsBarChart" style="display: block; box-sizing: border-box; height: 285px; width: 551px;" width="827"></canvas></div>
+</article>
+<article class="panel reveal chart-shell rounded-lg p-5">
+<div class="mb-4 flex items-center justify-between gap-3">
+<div>
+<h2 class="text-lg font-black text-white">Avance del Proyecto</h2>
+<p class="text-sm font-medium text-slate-300">Completado, en proceso y pendiente.</p>
+</div>
+<span class="rounded-md bg-emerald-400/12 px-3 py-1 text-xs font-black uppercase text-emerald-200">Dona</span>
+</div>
+<div class="chart-box"><canvas height="427" id="progressDoughnutChart" style="display: block; box-sizing: border-box; height: 285px; width: 551px;" width="827"></canvas></div>
+</article>
+<article class="panel reveal chart-shell rounded-lg p-5">
+<div class="mb-4 flex items-center justify-between gap-3">
+<div>
+<h2 class="text-lg font-black text-white">Top Observaciones</h2>
+<p class="text-sm font-medium text-slate-300">Frecuencia de comentarios más repetidos.</p>
+</div>
+<span class="rounded-md bg-orange-400/12 px-3 py-1 text-xs font-black uppercase text-orange-200">Ranking</span>
+</div>
+<div class="chart-box"><canvas height="427" id="topObservationsChart" style="display: block; box-sizing: border-box; height: 285px; width: 551px;" width="827"></canvas></div>
+</article>
+<article class="panel reveal chart-shell rounded-lg p-5">
+<div class="mb-4 flex items-center justify-between gap-3">
+<div>
+<h2 class="text-lg font-black text-white">Categorías de Avance</h2>
+<p class="text-sm font-medium text-slate-300">Comparación por rango de progreso.</p>
+</div>
+<span class="rounded-md bg-violet-400/12 px-3 py-1 text-xs font-black uppercase text-violet-200">Radar</span>
+</div>
+<div class="chart-box"><canvas height="427" id="progressRadarChart" style="display: block; box-sizing: border-box; height: 285px; width: 551px;" width="827"></canvas></div>
+</article>
+<article class="panel reveal chart-shell rounded-lg p-5 xl:col-span-2">
+<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+<div>
+<h2 class="text-lg font-black text-white">Evolución Acumulada</h2>
+<p class="text-sm font-medium text-slate-300">Registros procesados y completados según el orden del archivo.</p>
+</div>
+<span class="w-fit rounded-md bg-blue-400/12 px-3 py-1 text-xs font-black uppercase text-blue-200">Línea</span>
+</div>
+<div class="chart-box"><canvas height="427" id="cumulativeLineChart" style="display: block; box-sizing: border-box; height: 285px; width: 1164px;" width="1747"></canvas></div>
+</article>
+</section>
+<section class="panel reveal rounded-lg p-5">
+<div class="mb-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+<div>
+<h2 class="text-xl font-black text-white">Tabla Interactiva</h2>
+<p class="mt-1 text-sm font-semibold text-slate-300" id="tableCounter">63 de 63 registros visibles</p>
+</div>
+<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+<div class="relative">
+<svg aria-hidden="true" class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-cyan-200" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="11" cy="11" r="8"></circle>
+<path d="m21 21-4.3-4.3"></path>
+</svg>
+<input class="w-full rounded-lg border border-white/15 bg-slate-950/60 py-3 pl-10 pr-4 text-sm font-semibold text-white outline-none ring-0 transition placeholder:text-slate-500 focus:border-cyan-300/70 sm:w-80" id="searchInput" placeholder="Buscar en tiempo real" type="search"/>
+</div>
+
+</div>
+</div>
+<div class="table-wrap rounded-lg">
+<table class="min-w-[980px] w-full border-collapse text-left text-sm">
+<thead>
+<tr class="sticky-column-header text-xs uppercase text-slate-300">
+<th class="cursor-pointer px-4 py-4 font-black" data-sort="direction">Dirección <span class="sort-mark"></span></th>
+<th class="cursor-pointer px-4 py-4 font-black" data-sort="postNumber">Número de Poste <span class="sort-mark">↑</span></th>
+<th class="cursor-pointer px-4 py-4 font-black" data-sort="coordinates">Coordenadas <span class="sort-mark"></span></th>
+<th class="cursor-pointer px-4 py-4 font-black" data-sort="observation">Observaciones <span class="sort-mark"></span></th>
+<th class="cursor-pointer px-4 py-4 font-black" data-sort="progress">Avance <span class="sort-mark"></span></th>
+<th class="cursor-pointer px-4 py-4 font-black" data-sort="analytic">Analítico <span class="sort-mark"></span></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/8" id="tableBody"><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">C. Magdalena, La Magdalena, La Magdalena Contreras, 10910 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">00.10</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 18.169', W 099° 14.723'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">C. Durango 1-15, Héroes de Padierna, La Magdalena Contreras, Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0001</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3112164, -99.22945999999999</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Pachuca 13-17, Santa Teresa, Sta Teresa, La Magdalena Contreras, 10710 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0002</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3095473, -99.22848420000001</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Felipe Angeles 639, La Guadalupe, La Magdalena Contreras, 10820 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0003</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 18.362', W 099° 14.025'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Emiliano Zapata 135, La Guadalupe, La Magdalena Contreras, 10820 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0004</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.306884245435903, -99.2320187</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Emilio Carranza 118-108, La Magdalena, La Magdalena Contreras, 10910 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0005</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 18.237', W 099° 14.480'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">C. Sebastián Lerdo de Tejada, Barrio San Francisco, La Magdalena Contreras, 10500 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0006</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3075472, -99.2401527</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Tinaco 20, La Concepción, San Nicolás Totolapan, La Magdalena Contreras, 10830 De San Nicolás Totolapan, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0007</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 18.225', W 099° 14.261'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="bg-violet-500/10 transition hover:bg-violet-500/18">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Av. Álvaro Obregón 384, La Cruz, La Magdalena Contreras, 10800 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0008</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 18.326', W 099° 14.098'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-analytic">High Priority · Lectora de placas</span></td>
+</tr><tr class="bg-violet-500/10 transition hover:bg-violet-500/18">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Violeta 746, El Toro, La Magdalena Contreras, 10610 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0009</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 18.705', W 099° 14.602'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-analytic">High Priority · Lectora de placas</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">C. Sebastián Lerdo de Tejada 9-39, Barrio San Francisco, La Magdalena Contreras, 10500 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0011</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.30875974803249, -99.23767400188699</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Benito Juárez 32-20, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0012</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.298425739701667, -99.24443850766271</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">General Vertiz, , San Nicolás Totolapan, Ciudad de México, 10900</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0013</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.2975346, -99.2466657</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="bg-violet-500/10 transition hover:bg-violet-500/18">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Cjon. de Soledad 27-119, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0014</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 17.822', W 099° 14.667'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-analytic">High Priority · Lectora de placas</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Av. 1113BIS, 10900 De, C. Buenavista, San Nicolás Totolapan, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0015</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 17.715', W 099° 15.208'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Progreso 21, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0016</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3002518, -99.241366</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="bg-violet-500/10 transition hover:bg-violet-500/18">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">San Nicolás Totolapan, La Magdalena Contreras, 10643 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0017</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.2943431, -99.2550552</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-analytic">High Priority · Lectora de placas</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0018</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.28758, -99.24139</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">C. Primera de Subestación 24, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0019</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.29226595734104, -99.24440921613524</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="bg-violet-500/10 transition hover:bg-violet-500/18">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Puente de Cuadritos 18-b, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0020</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.2944345, -99.240336</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-analytic">High Priority · Lectora de placas</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Gral. Vertiz 12-14, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0021</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 17.561', W 099° 14.848'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="bg-violet-500/10 transition hover:bg-violet-500/18">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Ex-Hacienda de Eslava 4, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0022</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.284239, -99.24303689999999</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">vandalizada</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Otros</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-red-200">0%</span>
+<span class="text-xs font-bold text-slate-400">Pendiente</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:0%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-analytic">High Priority · Lectora de placas</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Ex-Hacienda de Eslava 22, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0023</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.2834691, -99.2423089</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">2a. Cda. Fresnillo 3A, Palmas, La Magdalena Contreras, 10370 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0024</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3142713, -99.2512196</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Emiliano Zapata 14-12, Barros Sierra, La Magdalena Contreras, 10380 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0025</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3167503, -99.2441762</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-red-200">bala dañada</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Falla o daño</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-cyan-200">75%</span>
+<span class="text-xs font-bold text-slate-400">En progreso</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:75%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Durazno 16, La Malinche, La Magdalena Contreras, 10010 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0026</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3235673, -99.2396201</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0027</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3174732, -99.256436</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="bg-violet-500/10 transition hover:bg-violet-500/18">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Av Hidalgo 110, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0028</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.324682, -99.2562896</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Reconfigurar ptz</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Reconfiguración</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-cyan-200">75%</span>
+<span class="text-xs font-bold text-slate-400">En progreso</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:75%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-analytic">High Priority · Lectora de placas</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Ahuatla 31, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0029</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3209331, -99.2573513</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Ahuatla, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0030</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.323165, -99.2559637</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Calle And. Cañada, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0031</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 19.162', W 099° 15.157'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Aztecas 46, San Bernabé Ocotepec, Lomas de San Bernabé, La Magdalena Contreras, 10350 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0032</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 19.026', W 099° 15.728'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Reconfiguracion de ptz</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Reconfiguración</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-cyan-200">75%</span>
+<span class="text-xs font-bold text-slate-400">En progreso</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:75%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Río Papaloapan 3, Ampliación Lomas de San Bernabé, Amp. Lomas de San Bernabé, La Magdalena Contreras, 10369 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0033</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.307060334466797, -99.26964234822262</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Galeana, Los Padres, Las Cruces, La Magdalena Contreras, 10340 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0034</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 19.096', W 099° 15.003'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Emiliano Zapata 4, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0035</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.313428062313644, -99.2561031</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Popocani, Palmas, Atacaxco, La Magdalena Contreras, 10378 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0036</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.314867, -99.2498995</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Poloni, Atacaxco, La Magdalena Contreras, 10378 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0037</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3156478, -99.2515452</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">C. Oyametla 18, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0038</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3210375, -99.25888649999999</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Av. de las Torres, Los Padres, La Magdalena Contreras, 10340 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0039</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.321529608064672, -99.2472528569997</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">C. Oyametla 11, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0040</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3150414, -99.26104459999999</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Fresno, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0041</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3135655, -99.2562043</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Emiliano Zapata 34-10, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0042</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.312844851523906, -99.25528241929828</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Las Flores 25, Rincón de Tlacuilotitla, El Ermitaño, La Magdalena Contreras, 10660 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0043</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.2988979, -99.2643843</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="bg-violet-500/10 transition hover:bg-violet-500/18">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Lomas Tarumba 12, El Ocotal, La Magdalena Contreras, 10630 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0044</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 17.855', W 099° 15.723'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Reconfigurar ptz</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Reconfiguración</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-cyan-200">75%</span>
+<span class="text-xs font-bold text-slate-400">En progreso</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:75%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-analytic">High Priority · Lectora de placas</span></td>
+</tr><tr class="bg-violet-500/10 transition hover:bg-violet-500/18">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Luis Echeverría Álvarez MZ37LT14, La Malinche, La Magdalena Contreras, 10320 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0045</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3249086, -99.2468062</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-red-200">camara bala dañada</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Falla o daño</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-cyan-200">75%</span>
+<span class="text-xs font-bold text-slate-400">En progreso</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:75%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-analytic">High Priority · Lectora de placas</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Río San Juan 28, Ampliación Lomas de San Bernabé, Amp. Lomas de San Bernabé, La Magdalena Contreras, 10369 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0046</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.308017679809343, -99.26834813825927</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">cipreses esquina pino, la cruz</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0047</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.306867311114846, -99.23572871975654</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Sin observación</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Sin observación</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-red-200">0%</span>
+<span class="text-xs font-bold text-slate-400">Pendiente</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:0%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Ferrocarril de Cuernavaca 69-68, Las Huertas, La Magdalena Contreras, 10920 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0048</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.295323254820357, -99.23653024559847</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-red-200">bala dañada</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Falla o daño</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-cyan-200">75%</span>
+<span class="text-xs font-bold text-slate-400">En progreso</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:75%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Calle Emiliano Zapata 71, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0049</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.28606269446364, -99.24517038224272</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">F.C. de Cuernavaca 3-85, La Cruz, La Magdalena Contreras, 10800 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0050</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.306006285091694, -99.23553423537086</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">And. 12, Tierra Unida, La Magdalena Contreras, 10369 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0051</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.3031645782583, -99.26852018586595</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Benito Juárez 34-247, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0052</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.297955503002473, -99.24387596080084</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Pajarera, Independencia Batan Sur, La Magdalena Contreras, 10200 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0053</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.33184891510574, -99.21131412940278</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="bg-violet-500/10 transition hover:bg-violet-500/18">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">C. de Escolta 13, Independencia San Ramón, San Jerónimo Lídice, La Magdalena Contreras, 10200 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0054</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.332996497476927, -99.2194832911678</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-analytic">High Priority · Lectora de placas</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">C. de Escolta, Independencia San Ramón, San Jerónimo Lídice, La Magdalena Contreras, 10100 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0055</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.33042002396763, -99.21956255046915</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Atlapizin 18-19, Lomas de San Bernabé, La Magdalena Contreras, 10350 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0056</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.30842132007045, -99.26606977392387</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Río Eslava 6, La Concepción, La Magdalena Contreras, 10830 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0057</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 18.176', W 099° 14.239'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Coconetla, El Ocotal, La Magdalena Contreras, Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0058</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 18.301', W 099° 15.516'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Av. Carbonera, La Carbonera, La Magdalena Contreras, 10640 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0059</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.299549197326197, -99.25725852995735</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Subida a San Bernabé 30-544, El Rosal, La Magdalena Contreras, 10600 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0060</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.308489642158403, -99.25035216051731</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">C. Ermitaño, El Ermitaño, La Magdalena Contreras, 10660 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0061</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.302807630939213, -99.26668072860353</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">bala fuera reconfigurar ptz</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Reconfiguración</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-yellow-200">50%</span>
+<span class="text-xs font-bold text-slate-400">En progreso</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:50%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Pipico 11-39, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0062</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">N 19° 18.115', W 099° 14.473'</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr><tr class="transition hover:bg-white/6">
+<td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">Vía Chiquita 489, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX</td>
+<td class="px-4 py-4 align-top">
+<span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">0063</span>
+</td>
+<td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">19.28573827682753, -99.24235055467163</td>
+<td class="max-w-[320px] px-4 py-4 align-top text-slate-200">
+<div class="space-y-2">
+<p class="text-slate-200">Funciona correctamente</p>
+<span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">Funciona correctamente</span>
+</div>
+</td>
+<td class="min-w-[160px] px-4 py-4 align-top">
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-3">
+<span class="metric-number text-sm font-black text-emerald-200">100%</span>
+<span class="text-xs font-bold text-slate-400">Completo</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:100%"></div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4 align-top"><span class="badge-neutral">No</span></td>
+</tr></tbody>
+</table>
+</div>
+</section>
+</section>
+</main>
+<script id="preloadedData" type="application/json">{"fileName":"Programa de Proyecto.xlsx","sheetName":"Hoja1","rowCount":63,"exportedAt":"2026-06-24T00:32:01.355Z","records":[{"direction":"Aztecas 46, San Bernabé Ocotepec, Lomas de San Bernabé, La Magdalena Contreras, 10350 Ciudad de México, CDMX","postNumber":"0032","coordinates":"N 19° 19.026', W 099° 15.728'","observation":"Reconfiguracion de ptz","progressRaw":75,"analyticLabel":""},{"direction":"Progreso 21, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX","postNumber":"0016","coordinates":"19.3002518, -99.241366","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Luis Echeverría Álvarez MZ37LT14, La Malinche, La Magdalena Contreras, 10320 Ciudad de México, CDMX","postNumber":"0045","coordinates":"19.3249086, -99.2468062","observation":"camara bala dañada","progressRaw":75,"analyticLabel":"Lectora de placas"},{"direction":"C. Oyametla 18, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX","postNumber":"0038","coordinates":"19.3210375, -99.25888649999999","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Lomas Tarumba 12, El Ocotal, La Magdalena Contreras, 10630 Ciudad de México, CDMX","postNumber":"0044","coordinates":"N 19° 17.855', W 099° 15.723'","observation":"Reconfigurar ptz","progressRaw":75,"analyticLabel":"Lectora de placas"},{"direction":"Las Flores 25, Rincón de Tlacuilotitla, El Ermitaño, La Magdalena Contreras, 10660 Ciudad de México, CDMX","postNumber":"0043","coordinates":"19.2988979, -99.2643843","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Ahuatla 31, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX","postNumber":"0029","coordinates":"19.3209331, -99.2573513","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX","postNumber":"0027","coordinates":"19.3174732, -99.256436","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Galeana, Los Padres, Las Cruces, La Magdalena Contreras, 10340 Ciudad de México, CDMX","postNumber":"0034","coordinates":"N 19° 19.096', W 099° 15.003'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Av Hidalgo 110, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX","postNumber":"0028","coordinates":"19.324682, -99.2562896","observation":"Reconfigurar ptz","progressRaw":75,"analyticLabel":"Lectora de placas"},{"direction":"General Vertiz, , San Nicolás Totolapan, Ciudad de México, 10900","postNumber":"0013","coordinates":"19.2975346, -99.2466657","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Gral. Vertiz 12-14, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX","postNumber":"0021","coordinates":"N 19° 17.561', W 099° 14.848'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Ex-Hacienda de Eslava 4, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX","postNumber":"0022","coordinates":"19.284239, -99.24303689999999","observation":"vandalizada","progressRaw":0,"analyticLabel":"Lectora de placas"},{"direction":"Ex-Hacienda de Eslava 22, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX","postNumber":"0023","coordinates":"19.2834691, -99.2423089","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"C. Oyametla 11, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX","postNumber":"0040","coordinates":"19.3150414, -99.26104459999999","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"C. Sebastián Lerdo de Tejada, Barrio San Francisco, La Magdalena Contreras, 10500 Ciudad de México, CDMX","postNumber":"0006","coordinates":"19.3075472, -99.2401527","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"C. Magdalena, La Magdalena, La Magdalena Contreras, 10910 Ciudad de México, CDMX","postNumber":"00.10","coordinates":"N 19° 18.169', W 099° 14.723'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Emilio Carranza 118-108, La Magdalena, La Magdalena Contreras, 10910 Ciudad de México, CDMX","postNumber":"0005","coordinates":"N 19° 18.237', W 099° 14.480'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Tinaco 20, La Concepción, San Nicolás Totolapan, La Magdalena Contreras, 10830 De San Nicolás Totolapan, CDMX","postNumber":"0007","coordinates":"N 19° 18.225', W 099° 14.261'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Felipe Angeles 639, La Guadalupe, La Magdalena Contreras, 10820 Ciudad de México, CDMX","postNumber":"0003","coordinates":"N 19° 18.362', W 099° 14.025'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Emiliano Zapata 135, La Guadalupe, La Magdalena Contreras, 10820 Ciudad de México, CDMX","postNumber":"0004","coordinates":"19.306884245435903, -99.2320187","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Pachuca 13-17, Santa Teresa, Sta Teresa, La Magdalena Contreras, 10710 Ciudad de México, CDMX","postNumber":"0002","coordinates":"19.3095473, -99.22848420000001","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"C. Durango 1-15, Héroes de Padierna, La Magdalena Contreras, Ciudad de México, CDMX","postNumber":"0001","coordinates":"19.3112164, -99.22945999999999","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Durazno 16, La Malinche, La Magdalena Contreras, 10010 Ciudad de México, CDMX","postNumber":"0026","coordinates":"19.3235673, -99.2396201","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Violeta 746, El Toro, La Magdalena Contreras, 10610 Ciudad de México, CDMX","postNumber":"0009","coordinates":"N 19° 18.705', W 099° 14.602'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":"Lectora de placas"},{"direction":"Av. 1113BIS, 10900 De, C. Buenavista, San Nicolás Totolapan, CDMX","postNumber":"0015","coordinates":"N 19° 17.715', W 099° 15.208'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Calle And. Cañada, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX","postNumber":"0031","coordinates":"N 19° 19.162', W 099° 15.157'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Puente de Cuadritos 18-b, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX","postNumber":"0020","coordinates":"19.2944345, -99.240336","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":"Lectora de placas"},{"direction":"2a. Cda. Fresnillo 3A, Palmas, La Magdalena Contreras, 10370 Ciudad de México, CDMX","postNumber":"0024","coordinates":"19.3142713, -99.2512196","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Poloni, Atacaxco, La Magdalena Contreras, 10378 Ciudad de México, CDMX","postNumber":"0037","coordinates":"19.3156478, -99.2515452","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Popocani, Palmas, Atacaxco, La Magdalena Contreras, 10378 Ciudad de México, CDMX","postNumber":"0036","coordinates":"19.314867, -99.2498995","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"San Nicolás Totolapan, La Magdalena Contreras, 10643 Ciudad de México, CDMX","postNumber":"0017","coordinates":"19.2943431, -99.2550552","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":"Lectora de placas"},{"direction":"Emiliano Zapata 14-12, Barros Sierra, La Magdalena Contreras, 10380 Ciudad de México, CDMX","postNumber":"0025","coordinates":"19.3167503, -99.2441762","observation":"bala dañada","progressRaw":75,"analyticLabel":""},{"direction":"San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX","postNumber":"0018","coordinates":"19.28758, -99.24139","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Ahuatla, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX","postNumber":"0030","coordinates":"19.323165, -99.2559637","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Fresno, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX","postNumber":"0041","coordinates":"19.3135655, -99.2562043","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Emiliano Zapata 4, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX","postNumber":"0035","coordinates":"19.313428062313644, -99.2561031","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"C. Sebastián Lerdo de Tejada 9-39, Barrio San Francisco, La Magdalena Contreras, 10500 Ciudad de México, CDMX","postNumber":"0011","coordinates":"19.30875974803249, -99.23767400188699","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Av. de las Torres, Los Padres, La Magdalena Contreras, 10340 Ciudad de México, CDMX","postNumber":"0039","coordinates":"19.321529608064672, -99.2472528569997","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Río Papaloapan 3, Ampliación Lomas de San Bernabé, Amp. Lomas de San Bernabé, La Magdalena Contreras, 10369 Ciudad de México, CDMX","postNumber":"0033","coordinates":"19.307060334466797, -99.26964234822262","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"C. Primera de Subestación 24, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX","postNumber":"0019","coordinates":"19.29226595734104, -99.24440921613524","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Emiliano Zapata 34-10, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX","postNumber":"0042","coordinates":"19.312844851523906, -99.25528241929828","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Cjon. de Soledad 27-119, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX","postNumber":"0014","coordinates":"N 19° 17.822', W 099° 14.667'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":"Lectora de placas"},{"direction":"cipreses esquina pino, la cruz","postNumber":"0047","coordinates":"19.306867311114846, -99.23572871975654","observation":"","progressRaw":0,"analyticLabel":""},{"direction":"Av. Álvaro Obregón 384, La Cruz, La Magdalena Contreras, 10800 Ciudad de México, CDMX","postNumber":"0008","coordinates":"N 19° 18.326', W 099° 14.098'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":"Lectora de placas"},{"direction":"Subida a San Bernabé 30-544, El Rosal, La Magdalena Contreras, 10600 Ciudad de México, CDMX","postNumber":"0060","coordinates":"19.308489642158403, -99.25035216051731","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Pipico 11-39, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX","postNumber":"0062","coordinates":"N 19° 18.115', W 099° 14.473'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Coconetla, El Ocotal, La Magdalena Contreras, Ciudad de México, CDMX","postNumber":"0058","coordinates":"N 19° 18.301', W 099° 15.516'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Río San Juan 28, Ampliación Lomas de San Bernabé, Amp. Lomas de San Bernabé, La Magdalena Contreras, 10369 Ciudad de México, CDMX","postNumber":"0046","coordinates":"19.308017679809343, -99.26834813825927","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Av. Carbonera, La Carbonera, La Magdalena Contreras, 10640 Ciudad de México, CDMX","postNumber":"0059","coordinates":"19.299549197326197, -99.25725852995735","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Atlapizin 18-19, Lomas de San Bernabé, La Magdalena Contreras, 10350 Ciudad de México, CDMX","postNumber":"0056","coordinates":"19.30842132007045, -99.26606977392387","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"And. 12, Tierra Unida, La Magdalena Contreras, 10369 Ciudad de México, CDMX","postNumber":"0051","coordinates":"19.3031645782583, -99.26852018586595","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"C. Ermitaño, El Ermitaño, La Magdalena Contreras, 10660 Ciudad de México, CDMX","postNumber":"0061","coordinates":"19.302807630939213, -99.26668072860353","observation":"bala fuera reconfigurar ptz","progressRaw":50,"analyticLabel":""},{"direction":"Río Eslava 6, La Concepción, La Magdalena Contreras, 10830 Ciudad de México, CDMX","postNumber":"0057","coordinates":"N 19° 18.176', W 099° 14.239'","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Calle Emiliano Zapata 71, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX","postNumber":"0049","coordinates":"19.28606269446364, -99.24517038224272","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"F.C. de Cuernavaca 3-85, La Cruz, La Magdalena Contreras, 10800 Ciudad de México, CDMX","postNumber":"0050","coordinates":"19.306006285091694, -99.23553423537086","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Benito Juárez 32-20, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX","postNumber":"0012","coordinates":"19.298425739701667, -99.24443850766271","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Benito Juárez 34-247, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX","postNumber":"0052","coordinates":"19.297955503002473, -99.24387596080084","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Vía Chiquita 489, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX","postNumber":"0063","coordinates":"19.28573827682753, -99.24235055467163","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"Ferrocarril de Cuernavaca 69-68, Las Huertas, La Magdalena Contreras, 10920 Ciudad de México, CDMX","postNumber":"0048","coordinates":"19.295323254820357, -99.23653024559847","observation":"bala dañada","progressRaw":75,"analyticLabel":""},{"direction":"C. de Escolta 13, Independencia San Ramón, San Jerónimo Lídice, La Magdalena Contreras, 10200 Ciudad de México, CDMX","postNumber":"0054","coordinates":"19.332996497476927, -99.2194832911678","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":"Lectora de placas"},{"direction":"Pajarera, Independencia Batan Sur, La Magdalena Contreras, 10200 Ciudad de México, CDMX","postNumber":"0053","coordinates":"19.33184891510574, -99.21131412940278","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""},{"direction":"C. de Escolta, Independencia San Ramón, San Jerónimo Lídice, La Magdalena Contreras, 10100 Ciudad de México, CDMX","postNumber":"0055","coordinates":"19.33042002396763, -99.21956255046915","observation":"Funciona correctamente","progressRaw":100,"analyticLabel":""}]}</script>
+<script>
+    (() => {
+      'use strict';
+
+      const COLORS = {
+        blue: '#2563EB',
+        cyan: '#06B6D4',
+        emerald: '#10B981',
+        violet: '#8B5CF6',
+        orange: '#F97316',
+        yellow: '#FACC15',
+        coral: '#EF4444',
+        pink: '#D946EF',
+        slateText: '#CBD5E1',
+        white: '#FFFFFF',
+      };
+
+      const FIELD_ALIASES = {
+        direction: [
+          'direccion de postes',
+          'direccion',
+          'dirección',
+          'address',
+          'ubicacion',
+          'ubicación',
+          'domicilio',
+          'calle',
+        ],
+        postNumber: [
+          'numero de poste',
+          'número de poste',
+          'num poste',
+          'no poste',
+          'poste',
+          'pole',
+          'pole id',
+          'id poste',
+          'codigo poste',
+          'código poste',
+        ],
+        coordinates: [
+          'coordenadas',
+          'coordenada',
+          'coordinates',
+          'gps',
+          'latitud longitud',
+          'lat lon',
+        ],
+        latitude: [
+          'latitud',
+          'latitude',
+          'lat',
+        ],
+        longitude: [
+          'longitud',
+          'longitude',
+          'lng',
+          'lon',
+        ],
+        observation: [
+          'observaciones',
+          'observacion',
+          'observación',
+          'comentarios',
+          'comentario',
+          'notas',
+          'nota',
+          'incidencias',
+          'incidente',
+        ],
+        progress: [
+          'avance del proyecto',
+          'avance',
+          'progreso',
+          'project progress',
+          'porcentaje',
+          'estatus',
+          'status',
+        ],
+        analytic: [
+          'analiticos',
+          'analíticos',
+          'analitico',
+          'analítico',
+          'analytics',
+          'analytical',
+          'high priority',
+          'prioridad',
+        ],
+      };
+
+      const state = {
+        records: [],
+        filteredRecords: [],
+        charts: {},
+        sort: { key: 'postNumber', direction: 'asc' },
+        source: { fileName: '', sheetName: '', rowCount: 0 },
+      };
+
+      const elements = {
+        fileInput: document.getElementById('fileInput'),
+        exportHtmlBtn: document.getElementById('exportHtmlBtn'),
+        statusMessage: document.getElementById('statusMessage'),
+        sheetBadge: document.getElementById('sheetBadge'),
+        emptyState: document.getElementById('emptyState'),
+        dashboardRoot: document.getElementById('dashboardRoot'),
+        dashboardContent: document.getElementById('dashboardContent'),
+        searchInput: document.getElementById('searchInput'),
+        exportCsvBtn: document.getElementById('exportCsvBtn'),
+        tableBody: document.getElementById('tableBody'),
+        tableCounter: document.getElementById('tableCounter'),
+        kpiTotal: document.getElementById('kpiTotal'),
+        kpiTotalHint: document.getElementById('kpiTotalHint'),
+        kpiProgress: document.getElementById('kpiProgress'),
+        kpiProgressHint: document.getElementById('kpiProgressHint'),
+        kpiProgressBar: document.getElementById('kpiProgressBar'),
+        kpiAnalytic: document.getElementById('kpiAnalytic'),
+        kpiAnalyticHint: document.getElementById('kpiAnalyticHint'),
+        kpiObservations: document.getElementById('kpiObservations'),
+        kpiObservationsHint: document.getElementById('kpiObservationsHint'),
+        criticalBadge: document.getElementById('criticalBadge'),
+        pendingBadge: document.getElementById('pendingBadge'),
+      };
+
+      const tableColumns = [
+        { key: 'direction', label: 'Dirección' },
+        { key: 'postNumber', label: 'Número de Poste' },
+        { key: 'coordinates', label: 'Coordenadas' },
+        { key: 'observation', label: 'Observaciones' },
+        { key: 'progress', label: 'Avance' },
+        { key: 'analytic', label: 'Analítico' },
+      ];
+
+      document.addEventListener('DOMContentLoaded', init);
+
+      function init() {
+        elements.fileInput.addEventListener('change', handleFileSelection);
+        elements.exportHtmlBtn.addEventListener('click', exportUpdatedHtml);
+        elements.searchInput.addEventListener('input', applyTableFilters);
+        elements.exportCsvBtn.addEventListener('click', exportFilteredCsv);
+        document.querySelectorAll('[data-sort]').forEach((header) => {
+          header.addEventListener('click', () => toggleSort(header.dataset.sort));
+        });
+
+        if (!window.XLSX || !window.Chart) {
+          showStatus('No se pudieron cargar las librerías CDN. Abre este HTML con conexión la primera vez y vuelve a intentar.', 'error');
+          return;
+        }
+
+        loadPreloadedData();
+      }
+
+      function loadPreloadedData() {
+        const embedded = document.getElementById('preloadedData');
+        if (!embedded?.textContent?.trim()) return;
+
+        try {
+          const payload = JSON.parse(embedded.textContent);
+          const records = normalizePreloadedRecords(payload.records || []);
+          if (!records.length) return;
+
+          replaceDashboardData(records, {
+            fileName: payload.fileName || 'Datos precargados',
+            sheetName: payload.sheetName || 'Precargado',
+            rowCount: payload.rowCount || records.length,
+          });
+          showStatus(`Datos precargados: ${records.length.toLocaleString('es-MX')} registros listos para visualizar.`, 'success');
+        } catch (error) {
+          console.error(error);
+          showStatus('No fue posible cargar los datos precargados del HTML.', 'error');
+        }
+      }
+
+      function normalizePreloadedRecords(rawRecords) {
+        return rawRecords.map((item, index) => {
+          const progress = parseProgress(item.progressRaw ?? item.progress);
+          const observation = cleanObservation(item.observation);
+          const analyticLabel = cleanValue(item.analyticLabel);
+          const analytic = parseAnalytic(analyticLabel || item.analytic);
+
+          return {
+            id: index + 1,
+            direction: cleanValue(item.direction),
+            postNumber: cleanValue(item.postNumber) || String(index + 1),
+            coordinates: cleanValue(item.coordinates),
+            observation,
+            progress,
+            progressRaw: cleanValue(item.progressRaw ?? item.progress),
+            analytic,
+            analyticLabel,
+            observationCategory: categorizeObservation(observation),
+            hasObservation: hasRealObservation(observation),
+            isCritical: isCriticalObservation(observation),
+            isPendingObservation: isPendingObservation(observation, progress),
+          };
+        }).filter(isMeaningfulRecord);
+      }
+
+      async function handleFileSelection(event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!isValidFileType(file)) {
+          resetDashboard();
+          showStatus('Formato no válido. Selecciona un archivo .xlsx, .xls o .csv.', 'error');
+          return;
+        }
+
+        try {
+          showStatus('Procesando archivo y recalculando dashboard...', 'info');
+          const extraction = await readExcelFile(file);
+          const processed = processData(extraction.rows, extraction.mapping);
+
+          if (!processed.records.length) {
+            resetDashboard();
+            showStatus('No se encontraron registros útiles. Revisa que el archivo contenga columnas de postes, avance u observaciones.', 'error');
+            return;
+          }
+
+          replaceDashboardData(processed.records, {
+            fileName: file.name,
+            sheetName: extraction.sheetName,
+            rowCount: extraction.rows.length,
+          });
+
+          showStatus(`Archivo cargado: ${file.name}. ${processed.records.length.toLocaleString('es-MX')} registros procesados desde "${extraction.sheetName}".`, 'success');
+        } catch (error) {
+          console.error(error);
+          resetDashboard();
+          showStatus(error.message || 'Ocurrió un error al leer el archivo. Revisa la estructura e intenta nuevamente.', 'error');
+        } finally {
+          event.target.value = '';
+        }
+      }
+
+      function isValidFileType(file) {
+        const extension = file.name.split('.').pop()?.toLowerCase();
+        return ['xlsx', 'xls', 'csv'].includes(extension);
+      }
+
+      async function readExcelFile(file) {
+        if (!window.XLSX) {
+          throw new Error('SheetJS no está disponible. Verifica la conexión para cargar la librería CDN.');
+        }
+
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, {
+          type: 'array',
+          cellDates: true,
+          raw: false,
+          dense: false,
+        });
+
+        const candidates = workbook.SheetNames.map((sheetName) => {
+          const sheet = workbook.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(sheet, {
+            header: 1,
+            defval: '',
+            blankrows: false,
+            raw: false,
+          });
+          const mapping = detectTableMapping(rows);
+          return { sheetName, rows, mapping };
+        }).filter((candidate) => candidate.mapping.score > 0);
+
+        if (!candidates.length) {
+          throw new Error('No fue posible detectar encabezados compatibles en el archivo.');
+        }
+
+        candidates.sort((a, b) => b.mapping.score - a.mapping.score);
+        return candidates[0];
+      }
+
+      function detectTableMapping(rows) {
+        let best = { score: -1, headerRowIndex: -1, columns: {}, headers: {} };
+        const maxScanRows = Math.min(rows.length, 40);
+
+        for (let rowIndex = 0; rowIndex < maxScanRows; rowIndex += 1) {
+          const row = rows[rowIndex] || [];
+          const mapping = buildMappingForHeaderRow(rows, rowIndex, row);
+          if (mapping.score > best.score) {
+            best = mapping;
+          }
+        }
+
+        return best;
+      }
+
+      function buildMappingForHeaderRow(rows, headerRowIndex, headerRow) {
+        const candidatesByField = {};
+
+        headerRow.forEach((cell, columnIndex) => {
+          const header = normalizeText(cell);
+          if (!header) return;
+
+          Object.entries(FIELD_ALIASES).forEach(([field, aliases]) => {
+            const score = scoreHeader(field, header, aliases);
+            if (score <= 0) return;
+
+            const density = countColumnDensity(rows, headerRowIndex + 1, columnIndex);
+            const adjustedScore = score + Math.min(density, 25) * 3;
+            candidatesByField[field] ||= [];
+            candidatesByField[field].push({
+              columnIndex,
+              headerText: String(cell).trim(),
+              score: adjustedScore,
+            });
+          });
+        });
+
+        const columns = {};
+        const headers = {};
+        let score = 0;
+
+        Object.entries(candidatesByField).forEach(([field, candidates]) => {
+          const sorted = candidates.sort((a, b) => b.score - a.score);
+          const selected = sorted.find((candidate) => !Object.values(columns).includes(candidate.columnIndex));
+          if (selected) {
+            columns[field] = selected.columnIndex;
+            headers[field] = selected.headerText;
+            score += selected.score;
+          }
+        });
+
+        const requiredScore = ['direction', 'postNumber', 'coordinates', 'latitude', 'longitude', 'observation', 'progress', 'analytic']
+          .filter((field) => columns[field] !== undefined).length;
+
+        if (columns.direction !== undefined) score += 45;
+        if (columns.observation !== undefined) score += 35;
+        if (columns.progress !== undefined) score += 35;
+        if (columns.postNumber !== undefined) score += 25;
+        if (columns.analytic !== undefined) score += 20;
+        if (columns.latitude !== undefined && columns.longitude !== undefined) score += 25;
+
+        if (requiredScore < 2) score = 0;
+
+        return { score, headerRowIndex, columns, headers };
+      }
+
+      function scoreHeader(field, normalizedHeader, aliases) {
+        let best = 0;
+
+        aliases.forEach((alias) => {
+          const normalizedAlias = normalizeText(alias);
+          if (normalizedHeader === normalizedAlias) {
+            best = Math.max(best, 120);
+          } else if (normalizedHeader.includes(normalizedAlias)) {
+            best = Math.max(best, 95 - Math.max(0, normalizedHeader.length - normalizedAlias.length) * 0.2);
+          } else if (normalizedAlias.includes(normalizedHeader) && normalizedHeader.length >= 5) {
+            best = Math.max(best, 72);
+          }
+        });
+
+        if (field === 'postNumber' && normalizedHeader.includes('direccion')) {
+          best = Math.min(best, 10);
+        }
+
+        return best;
+      }
+
+      function countColumnDensity(rows, startRowIndex, columnIndex) {
+        const limit = Math.min(rows.length, startRowIndex + 60);
+        let count = 0;
+
+        for (let rowIndex = startRowIndex; rowIndex < limit; rowIndex += 1) {
+          if (cleanValue(rows[rowIndex]?.[columnIndex])) count += 1;
+        }
+
+        return count;
+      }
+
+      function processData(rows, mapping) {
+        const records = [];
+        const start = mapping.headerRowIndex + 1;
+
+        for (let rowIndex = start; rowIndex < rows.length; rowIndex += 1) {
+          const row = rows[rowIndex] || [];
+          const record = normalizeRecord(row, mapping.columns, records.length + 1);
+          if (!isMeaningfulRecord(record)) continue;
+          records.push(record);
+        }
+
+        return { records };
+      }
+
+      function normalizeRecord(row, columns, fallbackIndex) {
+        const progressRaw = getCell(row, columns.progress);
+        const progress = parseProgress(progressRaw);
+        const observation = cleanObservation(getCell(row, columns.observation));
+        const analyticRaw = getCell(row, columns.analytic);
+        const direction = cleanValue(getCell(row, columns.direction));
+        const postNumber = cleanValue(getCell(row, columns.postNumber)) || String(fallbackIndex);
+        const coordinates = buildCoordinates(row, columns);
+        const analytic = parseAnalytic(analyticRaw);
+
+        return {
+          id: fallbackIndex,
+          direction,
+          postNumber,
+          coordinates,
+          observation,
+          progress,
+          progressRaw: cleanValue(progressRaw),
+          analytic,
+          analyticLabel: cleanValue(analyticRaw),
+          observationCategory: categorizeObservation(observation),
+          hasObservation: hasRealObservation(observation),
+          isCritical: isCriticalObservation(observation),
+          isPendingObservation: isPendingObservation(observation, progress),
+        };
+      }
+
+      function buildCoordinates(row, columns) {
+        const directCoordinates = cleanValue(getCell(row, columns.coordinates));
+        if (directCoordinates) return directCoordinates;
+
+        const lat = cleanValue(getCell(row, columns.latitude));
+        const lon = cleanValue(getCell(row, columns.longitude));
+        return [lat, lon].filter(Boolean).join(', ');
+      }
+
+      function getCell(row, columnIndex) {
+        if (columnIndex === undefined || columnIndex === null) return '';
+        return row[columnIndex] ?? '';
+      }
+
+      function replaceDashboardData(records, source) {
+        destroyCharts();
+
+        state.records = records;
+        state.filteredRecords = [...records];
+        state.source = source;
+        state.sort = { key: 'postNumber', direction: 'asc' };
+        elements.searchInput.value = '';
+
+        const metrics = calculateMetrics(records);
+        updateSourceBadge(source);
+        updateKpis(metrics);
+        updateCharts(records, metrics);
+        applyTableFilters();
+
+        elements.emptyState.classList.add('hidden');
+        elements.dashboardContent.classList.remove('hidden');
+        elements.exportHtmlBtn.disabled = false;
+        elements.exportHtmlBtn.classList.remove('opacity-50');
+        elements.dashboardRoot.classList.remove('loaded');
+        void elements.dashboardRoot.offsetWidth;
+        elements.dashboardRoot.classList.add('loaded');
+      }
+
+      function resetDashboard() {
+        destroyCharts();
+        state.records = [];
+        state.filteredRecords = [];
+        state.source = { fileName: '', sheetName: '', rowCount: 0 };
+        elements.tableBody.innerHTML = '';
+        elements.tableCounter.textContent = '0 registros visibles';
+        elements.sheetBadge.textContent = 'Sin archivo';
+        elements.exportHtmlBtn.disabled = true;
+        elements.exportHtmlBtn.classList.add('opacity-50');
+        elements.dashboardContent.classList.add('hidden');
+        elements.emptyState.classList.remove('hidden');
+        elements.dashboardRoot.classList.remove('loaded');
+      }
+
+      function calculateMetrics(records) {
+        const total = records.length;
+        const completed = records.filter((record) => record.progress >= 100).length;
+        const pending = total - completed;
+        const averageProgress = total ? records.reduce((sum, record) => sum + record.progress, 0) / total : 0;
+        const analytics = records.filter((record) => record.analytic).length;
+        const observations = records.filter((record) => record.hasObservation).length;
+        const critical = records.filter((record) => record.isCritical).length;
+        const pendingObservations = records.filter((record) => record.isPendingObservation).length;
+
+        return {
+          total,
+          completed,
+          pending,
+          averageProgress,
+          analytics,
+          analyticRate: total ? analytics / total * 100 : 0,
+          observations,
+          critical,
+          pendingObservations,
+        };
+      }
+
+      function updateSourceBadge(source) {
+        elements.sheetBadge.textContent = `${source.sheetName} · ${source.rowCount.toLocaleString('es-MX')} filas`;
+      }
+
+      function updateKpis(metrics) {
+        elements.kpiTotal.textContent = metrics.total.toLocaleString('es-MX');
+        elements.kpiTotalHint.textContent = `${metrics.total.toLocaleString('es-MX')} registros activos`;
+
+        elements.kpiProgress.textContent = `${Math.round(metrics.averageProgress)}%`;
+        elements.kpiProgressHint.textContent = `${metrics.completed.toLocaleString('es-MX')} completados / ${metrics.pending.toLocaleString('es-MX')} pendientes`;
+        elements.kpiProgressBar.style.width = `${Math.max(0, Math.min(100, metrics.averageProgress))}%`;
+
+        elements.kpiAnalytic.textContent = metrics.analytics.toLocaleString('es-MX');
+        elements.kpiAnalyticHint.textContent = `${formatPercent(metrics.analyticRate)} del total`;
+
+        elements.kpiObservations.textContent = metrics.observations.toLocaleString('es-MX');
+        elements.kpiObservationsHint.textContent = `${metrics.critical.toLocaleString('es-MX')} críticas / ${metrics.pendingObservations.toLocaleString('es-MX')} pendientes`;
+        elements.criticalBadge.textContent = `${metrics.critical.toLocaleString('es-MX')} críticas`;
+        elements.pendingBadge.textContent = `${metrics.pendingObservations.toLocaleString('es-MX')} pendientes`;
+      }
+
+      function updateCharts(records, metrics) {
+        destroyCharts();
+        state.charts.observationsBar = createObservationsBar(records);
+        state.charts.progressDoughnut = createProgressDoughnut(records, metrics);
+        state.charts.topObservations = createTopObservationsChart(records);
+        state.charts.progressRadar = createProgressRadarChart(records);
+        state.charts.cumulativeLine = createCumulativeLineChart(records);
+      }
+
+      function destroyCharts() {
+        Object.values(state.charts).forEach((chart) => {
+          if (chart && typeof chart.destroy === 'function') chart.destroy();
+        });
+        state.charts = {};
+      }
+
+      function createObservationsBar(records) {
+        const counts = countBy(records, (record) => record.observationCategory);
+        const labels = preferredCategoryOrder(Object.keys(counts));
+        const values = labels.map((label) => counts[label] || 0);
+
+        return new Chart(document.getElementById('observationsBarChart'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Registros',
+              data: values,
+              backgroundColor: vibrantPalette(labels.length, 0.78),
+              borderColor: vibrantPalette(labels.length, 1),
+              borderWidth: 2,
+              borderRadius: 8,
+              hoverBorderWidth: 3,
+            }],
+          },
+          options: baseChartOptions({
+            indexAxis: 'x',
+            plugins: {
+              tooltip: customTooltip('registros'),
+              legend: legendOptions(),
+            },
+            scales: chartScales('vertical'),
+          }),
+        });
+      }
+
+      function createProgressDoughnut(records, metrics) {
+        const data = {
+          'Completado': records.filter((record) => record.progress >= 100).length,
+          'En progreso': records.filter((record) => record.progress > 0 && record.progress < 100).length,
+          'Pendiente': records.filter((record) => record.progress <= 0).length,
+        };
+        const labels = Object.keys(data);
+
+        return new Chart(document.getElementById('progressDoughnutChart'), {
+          type: 'doughnut',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Avance',
+              data: labels.map((label) => data[label]),
+              backgroundColor: ['rgba(16, 185, 129, 0.88)', 'rgba(6, 182, 212, 0.86)', 'rgba(239, 68, 68, 0.84)'],
+              borderColor: ['#10B981', '#06B6D4', '#EF4444'],
+              borderWidth: 3,
+              hoverOffset: 18,
+              spacing: 4,
+            }],
+          },
+          options: baseChartOptions({
+            cutout: '66%',
+            plugins: {
+              tooltip: customTooltip('registros', (value) => `${formatPercent(metrics.total ? value / metrics.total * 100 : 0)} del total`),
+              legend: legendOptions('bottom'),
+            },
+          }),
+        });
+      }
+
+      function createTopObservationsChart(records) {
+        const relevant = records
+          .filter((record) => record.hasObservation)
+          .map((record) => normalizeObservationLabel(record.observation));
+        const counts = countBy(relevant, (label) => label);
+        const entries = Object.entries(counts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 8);
+        const labels = entries.map(([label]) => label);
+        const values = entries.map(([, count]) => count);
+
+        return new Chart(document.getElementById('topObservationsChart'), {
+          type: 'bar',
+          data: {
+            labels: labels.length ? labels : ['Sin observaciones'],
+            datasets: [{
+              label: 'Frecuencia',
+              data: values.length ? values : [0],
+              backgroundColor: vibrantPalette(Math.max(labels.length, 1), 0.82).reverse(),
+              borderColor: vibrantPalette(Math.max(labels.length, 1), 1).reverse(),
+              borderWidth: 2,
+              borderRadius: 8,
+            }],
+          },
+          options: baseChartOptions({
+            indexAxis: 'y',
+            plugins: {
+              tooltip: customTooltip('apariciones'),
+              legend: legendOptions(),
+            },
+            scales: chartScales('horizontal'),
+          }),
+        });
+      }
+
+      function createProgressRadarChart(records) {
+        const buckets = {
+          'Sin iniciar': records.filter((record) => record.progress <= 0).length,
+          'Inicial': records.filter((record) => record.progress > 0 && record.progress < 50).length,
+          'Medio': records.filter((record) => record.progress >= 50 && record.progress < 75).length,
+          'Avanzado': records.filter((record) => record.progress >= 75 && record.progress < 100).length,
+          'Completo': records.filter((record) => record.progress >= 100).length,
+        };
+        const labels = Object.keys(buckets);
+
+        return new Chart(document.getElementById('progressRadarChart'), {
+          type: 'radar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Registros por avance',
+              data: labels.map((label) => buckets[label]),
+              backgroundColor: 'rgba(139, 92, 246, 0.24)',
+              borderColor: COLORS.violet,
+              pointBackgroundColor: [COLORS.coral, COLORS.orange, COLORS.yellow, COLORS.cyan, COLORS.emerald],
+              pointBorderColor: COLORS.white,
+              pointHoverBackgroundColor: COLORS.white,
+              pointHoverBorderColor: COLORS.violet,
+              pointRadius: 5,
+              pointHoverRadius: 8,
+              borderWidth: 3,
+            }],
+          },
+          options: baseChartOptions({
+            plugins: {
+              tooltip: customTooltip('registros'),
+              legend: legendOptions('bottom'),
+            },
+            scales: {
+              r: {
+                angleLines: { color: 'rgba(255,255,255,0.18)' },
+                grid: { color: 'rgba(255,255,255,0.12)' },
+                pointLabels: { color: '#E2E8F0', font: { weight: '800', size: 12 } },
+                ticks: {
+                  color: '#E2E8F0',
+                  backdropColor: 'rgba(15, 23, 42, 0.75)',
+                  precision: 0,
+                },
+              },
+            },
+          }),
+        });
+      }
+
+      function createCumulativeLineChart(records) {
+        const labels = records.map((record, index) => `#${index + 1}`);
+        const processed = records.map((_, index) => index + 1);
+        let completedCounter = 0;
+        const completed = records.map((record) => {
+          if (record.progress >= 100) completedCounter += 1;
+          return completedCounter;
+        });
+
+        return new Chart(document.getElementById('cumulativeLineChart'), {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Procesados',
+                data: processed,
+                borderColor: COLORS.cyan,
+                backgroundColor: 'rgba(6, 182, 212, 0.18)',
+                pointBackgroundColor: COLORS.cyan,
+                pointBorderColor: COLORS.white,
+                pointRadius: records.length > 80 ? 0 : 3,
+                pointHoverRadius: 7,
+                borderWidth: 3,
+                tension: 0.36,
+                fill: true,
+              },
+              {
+                label: 'Completados',
+                data: completed,
+                borderColor: COLORS.emerald,
+                backgroundColor: 'rgba(16, 185, 129, 0.14)',
+                pointBackgroundColor: COLORS.emerald,
+                pointBorderColor: COLORS.white,
+                pointRadius: records.length > 80 ? 0 : 3,
+                pointHoverRadius: 7,
+                borderWidth: 3,
+                tension: 0.36,
+                fill: true,
+              },
+            ],
+          },
+          options: baseChartOptions({
+            interaction: { intersect: false, mode: 'index' },
+            plugins: {
+              tooltip: customTooltip('registros'),
+              legend: legendOptions('bottom'),
+            },
+            scales: chartScales('line'),
+          }),
+        });
+      }
+
+      function baseChartOptions(overrides = {}) {
+        return deepMerge({
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 950,
+            easing: 'easeOutQuart',
+          },
+          interaction: {
+            intersect: false,
+            mode: 'nearest',
+          },
+          plugins: {
+            legend: legendOptions(),
+            tooltip: customTooltip('registros'),
+          },
+        }, overrides);
+      }
+
+      function chartScales(type) {
+        const commonGrid = { color: 'rgba(255,255,255,0.1)', drawBorder: false };
+        const commonTicks = { color: '#CBD5E1', font: { weight: '700' } };
+
+        if (type === 'horizontal') {
+          return {
+            x: { grid: commonGrid, ticks: { ...commonTicks, precision: 0 } },
+            y: { grid: { display: false }, ticks: { ...commonTicks, callback: truncateTick } },
+          };
+        }
+
+        if (type === 'line') {
+          return {
+            x: {
+              grid: { display: false },
+              ticks: {
+                ...commonTicks,
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 10,
+              },
+            },
+            y: { grid: commonGrid, ticks: { ...commonTicks, precision: 0 }, beginAtZero: true },
+          };
+        }
+
+        return {
+          x: { grid: { display: false }, ticks: { ...commonTicks, callback: truncateTick } },
+          y: { grid: commonGrid, ticks: { ...commonTicks, precision: 0 }, beginAtZero: true },
+        };
+      }
+
+      function legendOptions(position = 'top') {
+        return {
+          display: true,
+          position,
+          labels: {
+            color: '#E2E8F0',
+            usePointStyle: true,
+            pointStyle: 'rectRounded',
+            boxWidth: 10,
+            boxHeight: 10,
+            padding: 18,
+            font: {
+              weight: '800',
+            },
+          },
+        };
+      }
+
+      function customTooltip(unit, extraLine) {
+        return {
+          enabled: true,
+          backgroundColor: 'rgba(15, 23, 42, 0.94)',
+          titleColor: COLORS.white,
+          bodyColor: '#E2E8F0',
+          borderColor: 'rgba(6, 182, 212, 0.55)',
+          borderWidth: 1,
+          padding: 14,
+          displayColors: true,
+          usePointStyle: true,
+          callbacks: {
+            title(items) {
+              return items?.[0]?.label || '';
+            },
+            label(context) {
+              const value = Number(context.parsed?.y ?? context.parsed?.x ?? context.raw ?? 0);
+              const label = context.dataset?.label ? `${context.dataset.label}: ` : '';
+              const lines = [`${label}${value.toLocaleString('es-MX')} ${unit}`];
+              if (typeof extraLine === 'function') {
+                lines.push(extraLine(value, context));
+              }
+              return lines;
+            },
+          },
+        };
+      }
+
+      function applyTableFilters() {
+        const searchTerm = normalizeText(elements.searchInput.value);
+        const filtered = state.records.filter((record) => {
+          if (!searchTerm) return true;
+          const searchable = normalizeText([
+            record.direction,
+            record.postNumber,
+            record.coordinates,
+            record.observation,
+            record.progressRaw,
+            record.analyticLabel,
+            record.analytic ? 'analitico high priority' : '',
+          ].join(' '));
+          return searchable.includes(searchTerm);
+        });
+
+        state.filteredRecords = sortRecords(filtered, state.sort.key, state.sort.direction);
+        renderTable(state.filteredRecords);
+        updateSortIndicators();
+      }
+
+      function toggleSort(key) {
+        if (state.sort.key === key) {
+          state.sort.direction = state.sort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+          state.sort = { key, direction: 'asc' };
+        }
+        applyTableFilters();
+      }
+
+      function sortRecords(records, key, direction) {
+        const factor = direction === 'asc' ? 1 : -1;
+        return [...records].sort((a, b) => {
+          const valueA = a[key];
+          const valueB = b[key];
+
+          if (typeof valueA === 'number' || typeof valueB === 'number') {
+            return ((Number(valueA) || 0) - (Number(valueB) || 0)) * factor;
+          }
+
+          if (typeof valueA === 'boolean' || typeof valueB === 'boolean') {
+            return ((Number(valueA) || 0) - (Number(valueB) || 0)) * factor;
+          }
+
+          return String(valueA ?? '').localeCompare(String(valueB ?? ''), 'es', {
+            numeric: true,
+            sensitivity: 'base',
+          }) * factor;
+        });
+      }
+
+      function renderTable(records) {
+        elements.tableBody.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+
+        records.forEach((record) => {
+          const row = document.createElement('tr');
+          row.className = record.analytic
+            ? 'bg-violet-500/10 transition hover:bg-violet-500/18'
+            : 'transition hover:bg-white/6';
+
+          row.innerHTML = `
+            <td class="max-w-[360px] px-4 py-4 align-top font-semibold text-slate-100">${escapeHtml(record.direction || 'Sin dirección')}</td>
+            <td class="px-4 py-4 align-top">
+              <span class="rounded-md border border-blue-300/30 bg-blue-500/12 px-2.5 py-1 font-black text-blue-100">${escapeHtml(record.postNumber || 'N/D')}</span>
+            </td>
+            <td class="max-w-[240px] px-4 py-4 align-top font-medium text-cyan-100">${escapeHtml(record.coordinates || 'Sin coordenadas')}</td>
+            <td class="max-w-[320px] px-4 py-4 align-top text-slate-200">${renderObservationCell(record)}</td>
+            <td class="min-w-[160px] px-4 py-4 align-top">${renderProgressCell(record.progress)}</td>
+            <td class="px-4 py-4 align-top">${renderAnalyticCell(record)}</td>
+          `;
+          fragment.appendChild(row);
+        });
+
+        elements.tableBody.appendChild(fragment);
+        elements.tableCounter.textContent = `${records.length.toLocaleString('es-MX')} de ${state.records.length.toLocaleString('es-MX')} registros visibles`;
+      }
+
+      function renderObservationCell(record) {
+        const criticalClass = record.isCritical ? 'text-red-200' : 'text-slate-200';
+        const clean = escapeHtml(record.observation || 'Sin observación');
+        const label = escapeHtml(record.observationCategory);
+        return `
+          <div class="space-y-2">
+            <p class="${criticalClass}">${clean}</p>
+            <span class="inline-flex rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs font-black text-slate-200">${label}</span>
+          </div>
+        `;
+      }
+
+      function renderProgressCell(progress) {
+        const color = progress >= 100 ? 'text-emerald-200' : progress >= 75 ? 'text-cyan-200' : progress > 0 ? 'text-yellow-200' : 'text-red-200';
+        return `
+          <div class="space-y-2">
+            <div class="flex items-center justify-between gap-3">
+              <span class="metric-number text-sm font-black ${color}">${Math.round(progress)}%</span>
+              <span class="text-xs font-bold text-slate-400">${progress >= 100 ? 'Completo' : progress > 0 ? 'En progreso' : 'Pendiente'}</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:${Math.max(0, Math.min(100, progress))}%"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderAnalyticCell(record) {
+        if (record.analytic) {
+          const label = record.analyticLabel ? ` · ${escapeHtml(record.analyticLabel)}` : '';
+          return `<span class="badge-analytic">High Priority${label}</span>`;
+        }
+        return '<span class="badge-neutral">No</span>';
+      }
+
+      function updateSortIndicators() {
+        document.querySelectorAll('[data-sort]').forEach((header) => {
+          const mark = header.querySelector('.sort-mark');
+          if (!mark) return;
+          mark.textContent = header.dataset.sort === state.sort.key
+            ? (state.sort.direction === 'asc' ? '↑' : '↓')
+            : '';
+        });
+      }
+
+      function exportFilteredCsv() {
+        if (!state.filteredRecords.length) {
+          showStatus('No hay registros visibles para exportar.', 'error');
+          return;
+        }
+
+        const headers = tableColumns.map((column) => column.label);
+        const rows = state.filteredRecords.map((record) => [
+          record.direction,
+          record.postNumber,
+          record.coordinates,
+          record.observation,
+          `${Math.round(record.progress)}%`,
+          record.analytic ? (record.analyticLabel || 'Analítico') : 'No',
+        ]);
+
+        const csv = [headers, ...rows]
+          .map((row) => row.map(csvEscape).join(','))
+          .join('\n');
+
+        const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+        link.href = url;
+        link.download = `dashboard-postes-${timestamp}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        showStatus('CSV exportado con los registros visibles de la tabla.', 'success');
+      }
+
+      function exportUpdatedHtml() {
+        if (!state.records.length) {
+          showStatus('Carga o precarga datos antes de guardar el HTML actualizado.', 'error');
+          return;
+        }
+
+        const payload = {
+          fileName: state.source.fileName || 'Dashboard actualizado',
+          sheetName: state.source.sheetName || 'Datos',
+          rowCount: state.records.length,
+          exportedAt: new Date().toISOString(),
+          records: state.records.map((record) => ({
+            direction: record.direction,
+            postNumber: record.postNumber,
+            coordinates: record.coordinates,
+            observation: record.observation === 'Sin observación' ? '' : record.observation,
+            progressRaw: Math.round(record.progress * 100) / 100,
+            analyticLabel: record.analyticLabel || (record.analytic ? 'Analítico' : ''),
+          })),
+        };
+
+        const serialized = safeJsonForScript(payload);
+        const currentHtml = `<!DOCTYPE html>\n${document.documentElement.outerHTML}`;
+        const updatedHtml = currentHtml.replace(
+          /(<script id="preloadedData" type="application\/json">)[\s\S]*?(<\/script>)/,
+          `$1${serialized}$2`
+        );
+
+        const blob = new Blob([updatedHtml], { type: 'text/html;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+        link.href = url;
+        link.download = `dashboard-postes-actualizado-${timestamp}.html`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        showStatus('HTML actualizado descargado. Compártelo o reemplázalo en la ubicación común para que otras computadoras vean estos datos.', 'success');
+      }
+
+      function showStatus(message, type) {
+        const styles = {
+          success: 'border-emerald-300/40 bg-emerald-500/12 text-emerald-100',
+          error: 'border-red-300/40 bg-red-500/12 text-red-100',
+          info: 'border-cyan-300/40 bg-cyan-500/12 text-cyan-100',
+        };
+
+        elements.statusMessage.className = `rounded-lg border px-4 py-3 text-sm font-semibold ${styles[type] || styles.info}`;
+        elements.statusMessage.textContent = message;
+        elements.statusMessage.classList.remove('hidden');
+      }
+
+      function parseProgress(value) {
+        const raw = cleanValue(value).toLowerCase();
+        if (!raw) return 0;
+
+        if (raw.includes('complet')) return 100;
+        if (raw.includes('finaliz')) return 100;
+        if (raw.includes('pendiente') || raw.includes('sin iniciar')) return 0;
+
+        const numeric = Number(
+          raw
+            .replace('%', '')
+            .replace(',', '.')
+            .replace(/[^\d.-]/g, '')
+        );
+
+        if (Number.isNaN(numeric)) return 0;
+        if (raw.includes('%')) return clamp(numeric, 0, 100);
+        if (numeric > 0 && numeric <= 1) return clamp(numeric * 100, 0, 100);
+        return clamp(numeric, 0, 100);
+      }
+
+      function parseAnalytic(value) {
+        const raw = normalizeText(value);
+        if (!raw) return false;
+        const negative = ['no', 'n/a', 'na', 'false', 'falso', '0', 'ninguno', 'sin analitico', 'sin analiticos'];
+        return !negative.includes(raw);
+      }
+
+      function cleanObservation(value) {
+        const cleaned = cleanValue(value);
+        return cleaned || 'Sin observación';
+      }
+
+      function hasRealObservation(observation) {
+        const normalized = normalizeText(observation);
+        return Boolean(normalized && normalized !== 'sin observacion' && normalized !== 'sin observaciones');
+      }
+
+      function isCriticalObservation(observation) {
+        const text = normalizeText(observation);
+        if (!hasRealObservation(observation)) return false;
+        return [
+          'danada',
+          'danado',
+          'falla',
+          'fallo',
+          'no funciona',
+          'sin servicio',
+          'critico',
+          'roto',
+          'desconectado',
+          'reemplazar',
+          'remplazar',
+          'urgente',
+          'error',
+        ].some((keyword) => text.includes(keyword));
+      }
+
+      function isPendingObservation(observation, progress) {
+        const text = normalizeText(observation);
+        if (!hasRealObservation(observation)) return false;
+        const ok = ['funciona correctamente', 'correcto', 'ok', 'sin novedad', 'operando'].some((keyword) => text.includes(keyword));
+        const pendingKeyword = ['pendiente', 'reconfigurar', 'reconfiguracion', 'instalar', 'cambiar', 'validar', 'revisar'].some((keyword) => text.includes(keyword));
+        return !ok || progress < 100 || pendingKeyword;
+      }
+
+      function categorizeObservation(observation) {
+        const text = normalizeText(observation);
+        if (!hasRealObservation(observation)) return 'Sin observación';
+        if (['funciona correctamente', 'correcto', 'ok', 'sin novedad', 'operando'].some((keyword) => text.includes(keyword))) return 'Funciona correctamente';
+        if (['reconfigurar', 'reconfiguracion', 'configurar', 'ptz'].some((keyword) => text.includes(keyword))) return 'Reconfiguración';
+        if (['danada', 'danado', 'falla', 'fallo', 'roto', 'error'].some((keyword) => text.includes(keyword))) return 'Falla o daño';
+        if (['pendiente', 'validar', 'revisar', 'instalar', 'cambiar'].some((keyword) => text.includes(keyword))) return 'Pendiente';
+        return 'Otros';
+      }
+
+      function normalizeObservationLabel(observation) {
+        const cleaned = cleanValue(observation);
+        if (!cleaned || !hasRealObservation(cleaned)) return 'Sin observación';
+        const compact = cleaned.replace(/\s+/g, ' ').trim();
+        return compact.length > 62 ? `${compact.slice(0, 59)}...` : compact;
+      }
+
+      function preferredCategoryOrder(labels) {
+        const order = ['Funciona correctamente', 'Reconfiguración', 'Falla o daño', 'Pendiente', 'Otros', 'Sin observación'];
+        return [
+          ...order.filter((label) => labels.includes(label)),
+          ...labels.filter((label) => !order.includes(label)).sort((a, b) => a.localeCompare(b, 'es')),
+        ];
+      }
+
+      function vibrantPalette(length, alpha = 1) {
+        const base = [
+          [37, 99, 235],
+          [6, 182, 212],
+          [16, 185, 129],
+          [139, 92, 246],
+          [249, 115, 22],
+          [250, 204, 21],
+          [239, 68, 68],
+          [217, 70, 239],
+        ];
+
+        return Array.from({ length }, (_, index) => {
+          const color = base[index % base.length];
+          return `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha})`;
+        });
+      }
+
+      function countBy(items, keyGetter) {
+        return items.reduce((acc, item) => {
+          const key = keyGetter(item) || 'Sin datos';
+          acc[key] = (acc[key] || 0) + 1;
+          return acc;
+        }, {});
+      }
+
+      function normalizeText(value) {
+        return String(value ?? '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/\u00A0/g, ' ')
+          .toLowerCase()
+          .replace(/[^a-z0-9.%/-]+/g, ' ')
+          .trim()
+          .replace(/\s+/g, ' ');
+      }
+
+      function cleanValue(value) {
+        if (value instanceof Date) return value.toLocaleDateString('es-MX');
+        return String(value ?? '')
+          .replace(/\u00A0/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      function isMeaningfulRecord(record) {
+        const hasIdentity = Boolean(record.direction || record.postNumber || record.coordinates);
+        const hasOperationalData = record.progress > 0 || record.hasObservation || record.analytic;
+        return hasIdentity || hasOperationalData;
+      }
+
+      function formatPercent(value) {
+        return `${Number(value || 0).toLocaleString('es-MX', {
+          maximumFractionDigits: 1,
+          minimumFractionDigits: 0,
+        })}%`;
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function truncateTick(value) {
+        const label = this.getLabelForValue ? this.getLabelForValue(value) : String(value);
+        return label.length > 22 ? `${label.slice(0, 19)}...` : label;
+      }
+
+      function csvEscape(value) {
+        const text = String(value ?? '');
+        return `"${text.replace(/"/g, '""')}"`;
+      }
+
+      function safeJsonForScript(data) {
+        return JSON.stringify(data)
+          .replace(/</g, '\\u003C')
+          .replace(/>/g, '\\u003E')
+          .replace(/&/g, '\\u0026');
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function deepMerge(target, source) {
+        const output = { ...target };
+        Object.keys(source).forEach((key) => {
+          const sourceValue = source[key];
+          const targetValue = output[key];
+          if (
+            sourceValue &&
+            typeof sourceValue === 'object' &&
+            !Array.isArray(sourceValue) &&
+            targetValue &&
+            typeof targetValue === 'object' &&
+            !Array.isArray(targetValue)
+          ) {
+            output[key] = deepMerge(targetValue, sourceValue);
+          } else {
+            output[key] = sourceValue;
+          }
+        });
+        return output;
+      }
+    })();
+  </script>
+</body></html>
