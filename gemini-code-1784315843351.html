@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Telemetry - Executive Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0F172A',
+                        darkCard: 'rgba(30, 41, 59, 0.7)',
+                        brandBlue: '#2563EB',
+                        brandCyan: '#06B6D4',
+                        brandEmerald: '#10B981',
+                        brandPurple: '#8B5CF6',
+                        brandOrange: '#F97316',
+                        brandCoral: '#EF4444',
+                        brandYellow: '#FACC15',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body { background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #111827 100%); background-attachment: fixed; font-family: 'Inter', sans-serif; }
+        .glass-panel { background: rgba(30, 41, 59, 0.55); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2); border-color: rgba(255, 255, 255, 0.15); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.3); }
+        ::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.4); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(139, 92, 246, 0.7); }
+        #map { height: 400px; border-radius: 12px; z-index: 10; }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen pb-12">
+    <div class="sticky top-0 z-50 w-full glass-panel border-b border-white/10 shadow-lg px-6 py-4 mb-8">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-gradient-to-tr from-brandPurple to-brandCyan rounded-xl shadow-lg shadow-brandPurple/30">
+                    <i class="fa-solid fa-chart-line text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white">SaaS Telemetry</h1>
+                    <p class="text-xs text-slate-400">Dashboard de Infraestructura Pre-cargado</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div id="dashboardContent" class="space-y-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- KPI 1 -->
+                <div class="glass-panel glass-card-hover rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold tracking-wider text-blue-400 uppercase">Total Postes</span>
+                    </div>
+                    <span id="kpiTotalPostes" class="text-3xl sm:text-4xl font-extrabold text-white">-</span>
+                </div>
+                <!-- KPI 2 -->
+                <div class="glass-panel glass-card-hover rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold tracking-wider text-brandEmerald uppercase">Avance Promedio</span>
+                    </div>
+                    <span id="kpiAvancePct" class="text-3xl sm:text-4xl font-extrabold text-white">0%</span>
+                </div>
+                <!-- KPI 3 -->
+                <div class="glass-panel glass-card-hover rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold tracking-wider text-purple-400 uppercase">Observaciones</span>
+                    </div>
+                    <span id="kpiObservacionesCount" class="text-3xl sm:text-4xl font-extrabold text-white">-</span>
+                </div>
+                <!-- KPI 4 -->
+                <div class="glass-panel glass-card-hover rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold tracking-wider text-orange-400 uppercase">Alertas Críticas</span>
+                    </div>
+                    <span id="kpiCriticas" class="text-3xl sm:text-4xl font-extrabold text-white">-</span>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-6 shadow-xl relative">
+                <h3 class="text-lg font-bold text-white mb-4">Mapa de Infraestructura</h3>
+                <div id="map" class="shadow-inner border border-white/10"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-panel rounded-2xl p-6 h-[350px]">
+                    <h4 class="text-sm font-semibold text-slate-300 mb-4">Distribución de Avance</h4>
+                    <div class="h-[250px]"><canvas id="chartDonaAvance"></canvas></div>
+                </div>
+                <div class="glass-panel rounded-2xl p-6 h-[350px]">
+                    <h4 class="text-sm font-semibold text-slate-300 mb-4">Postes con Observaciones</h4>
+                    <div class="h-[250px]"><canvas id="chartBarrasObservaciones"></canvas></div>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-6 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-white">Listado detallado</h3>
+                    <input type="text" id="tableSearch" placeholder="Buscar..." class="px-4 py-2 bg-slate-800 rounded-xl text-sm border border-white/10 text-white" />
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-xs text-slate-400 uppercase">
+                                <th class="p-4">No.</th>
+                                <th class="p-4">Poste</th>
+                                <th class="p-4">Dirección</th>
+                                <th class="p-4">Avance</th>
+                                <th class="p-4">Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-white/5"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Data del archivo precargada
+        const data = [
+  {"id": 1, "direccion": "Aztecas 46, San Bernabé Ocotepec, Lomas de San Bernabé, La Magdalena Contreras, 10350 Ciudad de México, CDMX", "coordenadas": "N 19° 19.026', W 099° 15.728'", "avance": 0.75, "poste": 32, "observaciones": "PTZ fuera HV"},
+  {"id": 2, "direccion": "Progreso 21, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "coordenadas": "19.3002518, -99.241366", "avance": 1.0, "poste": 16, "observaciones": "Funciona correctamente"},
+  {"id": 3, "direccion": "Luis Echeverría Álvarez MZ37LT14, La Malinche, La Magdalena Contreras, 10320 Ciudad de México, CDMX", "coordenadas": "19.3249086, -99.2468062", "avance": 0.5, "poste": 45, "observaciones": "Bala fuera daño provedor"},
+  {"id": 4, "direccion": "C. Oyametla 18, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "coordenadas": "19.3210375, -99.25888649999999", "avance": 1.0, "poste": 38, "observaciones": "Funciona correctamente"},
+  {"id": 5, "direccion": "Lomas Tarumba 12, El Ocotal, La Magdalena Contreras, 10630 Ciudad de México, CDMX", "coordenadas": "N 19° 17.855', W 099° 15.723'", "avance": 0.75, "poste": 44, "observaciones": "PTZ fuera HV"},
+  {"id": 6, "direccion": "Las Flores 25, Rincón de Tlacuilotitla, El Ermitaño, La Magdalena Contreras, 10660 Ciudad de México, CDMX", "coordenadas": "19.2988979, -99.2643843", "avance": 1.0, "poste": 43, "observaciones": "Funciona correctamente"},
+  {"id": 7, "direccion": "Ahuatla 31, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "coordenadas": "19.3209331, -99.2573513", "avance": 1.0, "poste": 29, "observaciones": "Funciona correctamente"},
+  {"id": 8, "direccion": "Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "coordenadas": "19.3174732, -99.256436", "avance": 1.0, "poste": 27, "observaciones": "Funciona correctamente"},
+  {"id": 9, "direccion": "Galeana, Los Padres, Las Cruces, La Magdalena Contreras, 10340 Ciudad de México, CDMX", "coordenadas": "N 19° 19.096', W 099° 15.003'", "avance": 1.0, "poste": 34, "observaciones": "Funciona correctamente"},
+  {"id": 10, "direccion": "Av Hidalgo 110, Las Cruces, La Magdalena Contreras, 10330 Ciudad de México, CDMX", "coordenadas": "19.324682, -99.2562896", "avance": 0.75, "poste": 28, "observaciones": "PTZ fuera HV"},
+  {"id": 11, "direccion": "General Vertiz, , San Nicolás Totolapan, Ciudad de México, 10900", "coordenadas": "19.2975346, -99.2466657", "avance": 1.0, "poste": 13, "observaciones": "Funciona correctamente"},
+  {"id": 12, "direccion": "Gral. Vertiz 12-14, San Nicolás Totolapan, La Magdalena Contreras, 10900 Ciudad de México, CDMX", "coordenadas": "N 19° 17.561', W 099° 14.848'", "avance": 1.0, "poste": 21, "observaciones": "Funciona correctamente"},
+  {"id": 13, "direccion": "Ex-Hacienda de Eslava 4, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "coordenadas": "19.284239, -99.24303689999999", "avance": 0.0, "poste": 22, "observaciones": "camaras bala funcionan ok, ptz hay que desmontar"},
+  {"id": 14, "direccion": "Ex-Hacienda de Eslava 22, San Nicolás Totolapan, La Magdalena Contreras, 10926 Ciudad de México, CDMX", "coordenadas": "19.2834691, -99.2423089", "avance": 1.0, "poste": 23, "observaciones": "Funciona correctamente"},
+  {"id": 15, "direccion": "C. Oyametla 11, San Bernabé Ocotepec, La Magdalena Contreras, 10300 Ciudad de México, CDMX", "coordenadas": "19.3150414, -99.26104459999999", "avance": 0.75, "poste": 40, "observaciones": "PTZ fuera HV"}
+];
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDashboard();
+        });
+
+        function renderDashboard() {
+            // KPIs
+            document.getElementById('kpiTotalPostes').textContent = data.length;
+            const avgAvance = Math.round((data.reduce((acc, curr) => acc + curr.avance, 0) / data.length) * 100);
+            document.getElementById('kpiAvancePct').textContent = avgAvance + "%";
+            document.getElementById('kpiObservacionesCount').textContent = data.filter(d => d.observaciones).length;
+            document.getElementById('kpiCriticas').textContent = data.filter(d => d.observaciones.toLowerCase().includes('fuera') || d.observaciones.toLowerCase().includes('daño')).length;
+
+            // Tabla
+            const tbody = document.getElementById('tableBody');
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-4">${item.id}</td>
+                    <td class="p-4">${item.poste}</td>
+                    <td class="p-4 text-xs max-w-[200px] truncate">${item.direccion}</td>
+                    <td class="p-4">${(item.avance * 100).toFixed(0)}%</td>
+                    <td class="p-4 text-xs">${item.observaciones}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Gráficos básicos (ejemplo simplificado)
+            new Chart(document.getElementById('chartDonaAvance'), {
+                type: 'doughnut',
+                data: { labels: ['Completado', 'Pendiente'], datasets: [{ data: [data.filter(d => d.avance === 1).length, data.filter(d => d.avance < 1).length], backgroundColor: ['#10B981', '#EF4444'] }] }
+            });
+        }
+    </script>
+</body>
+</html>
